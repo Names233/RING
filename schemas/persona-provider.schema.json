@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://digital-genesis.dev/schemas/persona-provider.schema.json",
+  "title": "Digital Genesis Persona Provider A2A Contract",
+  "type": "object",
+  "required": ["message", "group_context", "recalled_memory"],
+  "additionalProperties": false,
+  "properties": {
+    "message": {
+      "type": "object",
+      "description": "The incoming platform message after AstrBot normalization.",
+      "required": ["role", "parts"],
+      "additionalProperties": false,
+      "properties": {
+        "role": { "const": "user" },
+        "parts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["type", "text"],
+            "additionalProperties": false,
+            "properties": {
+              "type": { "const": "text" },
+              "text": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
+    "group_context": {
+      "type": "object",
+      "description": "Platform and conversation context needed for trigger judgment.",
+      "required": ["platform", "conversation_id"],
+      "additionalProperties": false,
+      "properties": {
+        "platform": { "type": "string", "minLength": 1 },
+        "conversation_id": { "type": "string", "minLength": 1 },
+        "speaker_id": { "type": "string", "minLength": 1 },
+        "speaker_name": { "type": "string", "minLength": 1 },
+        "recent_messages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["speaker_id", "text", "timestamp"],
+            "additionalProperties": false,
+            "properties": {
+              "speaker_id": { "type": "string", "minLength": 1 },
+              "text": { "type": "string" },
+              "timestamp": { "type": "string" }
+            }
+          }
+        },
+        "at_me": { "type": "boolean", "default": false }
+      }
+    },
+    "recalled_memory": {
+      "type": "object",
+      "description": "Memory fragments recalled from OpenViking by AstrBot before dispatch.",
+      "required": ["fragments"],
+      "additionalProperties": false,
+      "properties": {
+        "fragments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["uri", "summary", "level"],
+            "additionalProperties": false,
+            "properties": {
+              "uri": { "type": "string", "pattern": "^viking://" },
+              "summary": { "type": "string" },
+              "level": { "enum": ["L0", "L1", "L2"] }
+            }
+          }
+        }
+      }
+    }
+  }
+}

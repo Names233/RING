@@ -1,0 +1,38 @@
+# Digital Genesis model gateway
+# Docs: https://docs.litellm.ai/docs/config/yaml
+model_list:
+  - model_name: persona-chat
+    litellm_params:
+      model: deepseek/deepseek-chat
+      api_key: os.environ/DEEPSEEK_API_KEY
+  - model_name: persona-trigger
+    litellm_params:
+      model: ollama/qwen3:1b
+      api_base: os.environ/OLLAMA_BASE_URL
+  - model_name: coding-primary
+    litellm_params:
+      model: anthropic/claude-sonnet-4-5
+      api_key: os.environ/ANTHROPIC_API_KEY
+  - model_name: coding-fallback
+    litellm_params:
+      model: deepseek/deepseek-coder
+      api_key: os.environ/DEEPSEEK_API_KEY
+  - model_name: intent-router
+    litellm_params:
+      model: deepseek/deepseek-chat
+      api_key: os.environ/DEEPSEEK_API_KEY
+
+router_settings:
+  routing_strategy: simple-shuffle
+  num_retries: 2
+  timeout: 300
+  fallbacks:
+    - coding-primary: [coding-fallback]
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+
+litellm_settings:
+  drop_params: true
+  success_callback: ["langfuse"]
+  failure_callback: ["langfuse"]

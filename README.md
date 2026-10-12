@@ -66,3 +66,18 @@ AstrBot (耳目) ── 平台接入 / 意图路由 / 消息收发
 ## 详细设计
 
 👉 [ARCHITECTURE.md](./ARCHITECTURE.md)
+
+## 工程状态与开发流程
+
+👉 [DEVELOPMENT.md](./DEVELOPMENT.md)：仓库结构、ACP↔A2A bridge、配置校验、记忆迁移、CI 与待办清单。
+
+## 设计文档索引
+
+- [架构总览](./ARCHITECTURE.md)
+- [开发状态与流程](./DEVELOPMENT.md)
+- [Persona Provider 契约](./docs/PERSONA_PROVIDER_CONTRACT.md)
+- [OpenViking 权限矩阵](./docs/OPENVIKING_PERMISSION_MATRIX.md)
+- [AstrBot 路由插件设计](./docs/ASTRBOT_ROUTER_DESIGN.md)
+- [评估集设计](./docs/EVAL_DESIGN.md)
+- [ACP 流式事件映射设计](./docs/ACP_STREAMING_DESIGN.md)
+- [Persona Plan B 设计](./docs/PERSONA_PLAN_B_DESIGN.md)

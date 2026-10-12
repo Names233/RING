@@ -1,0 +1,12 @@
+{"id":"route-001","text":"帮我部署一下服务","expected_route":"tech","difficulty":"easy"}
+{"id":"route-002","text":"今天好累啊","expected_route":"chat","difficulty":"easy"}
+{"id":"route-003","text":"笑一下","expected_route":"embodiment","difficulty":"easy"}
+{"id":"route-004","text":"修一下这个报错","expected_route":"tech","difficulty":"easy"}
+{"id":"route-005","text":"这个梗好好笑","expected_route":"chat","difficulty":"easy"}
+{"id":"route-006","text":"用语音说一遍","expected_route":"embodiment","difficulty":"medium"}
+{"id":"route-007","text":"查一下昨天部署的日志","expected_route":"tech","difficulty":"medium"}
+{"id":"route-008","text":"有点想你了","expected_route":"chat","difficulty":"medium"}
+{"id":"route-009","text":"换个开心点的表情","expected_route":"embodiment","difficulty":"easy"}
+{"id":"route-010","text":"跑下测试然后告诉我结果","expected_route":"tech","difficulty":"medium"}
+{"id":"route-011","text":"早上好","expected_route":"chat","difficulty":"easy"}
+{"id":"route-012","text":"帮我看看这个仓库","expected_route":"tech","difficulty":"medium"}

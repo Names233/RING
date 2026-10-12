@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://digital-genesis.dev/schemas/persona-provider-response.schema.json",
+  "title": "Digital Genesis Persona Provider Response",
+  "type": "object",
+  "required": ["should_reply", "text", "emotion"],
+  "additionalProperties": false,
+  "properties": {
+    "should_reply": { "type": "boolean" },
+    "text": {
+      "type": "string",
+      "description": "Generated persona response. MUST be empty when should_reply is false."
+    },
+    "emotion": {
+      "type": "string",
+      "description": "Normalized emotion tag consumed by AIRI expressions.",
+      "enum": ["neutral", "happy", "excited", "sad", "angry", "thinking", "shy", "sleepy"]
+    },
+    "trace_id": {
+      "type": "string",
+      "description": "Optional Langfuse trace ID used for end-to-end correlation."
+    }
+  }
+}

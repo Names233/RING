@@ -1,0 +1,20 @@
+{"id":"memory-001","query":"用户对部署通知有什么偏好？","expected_uris":["viking://memories/users/names/preferences.md"],"expected_level":"L1","difficulty":"easy"}
+{"id":"memory-002","query":"用户喜欢什么风格的回复？","expected_uris":["viking://memories/users/names/preferences.md"],"expected_level":"L1","difficulty":"easy"}
+{"id":"memory-003","query":"用户的常用称呼是什么？","expected_uris":["viking://memories/users/names/facts.md"],"expected_level":"L1","difficulty":"easy"}
+{"id":"memory-004","query":"用户最近情绪状态如何？","expected_uris":["viking://memories/users/names/emotions.md"],"expected_level":"L1","difficulty":"easy"}
+{"id":"memory-005","query":"上次部署是什么时候？","expected_uris":["viking://memories/agents/dsh/task_history/deployments.md"],"expected_level":"L1","difficulty":"medium"}
+{"id":"memory-006","query":"项目文档放在哪里？","expected_uris":["viking://resources/digital-genesis/docs"],"expected_level":"L0","difficulty":"easy"}
+{"id":"memory-007","query":"怎么部署 FastAPI 服务？","expected_uris":["viking://skills/deploy-fastapi/"],"expected_level":"L1","difficulty":"medium"}
+{"id":"memory-008","query":"Docker 报错怎么排查？","expected_uris":["viking://skills/debug-docker/"],"expected_level":"L1","difficulty":"medium"}
+{"id":"memory-009","query":"麦麦最近学到了什么表达习惯？","expected_uris":["viking://memories/agents/maibot/diary/"],"expected_level":"L0","difficulty":"medium"}
+{"id":"memory-010","query":"AIRI 游戏进度怎么样了？","expected_uris":["viking://memories/agents/airi/game_progress/"],"expected_level":"L1","difficulty":"easy"}
+{"id":"memory-011","query":"用户之前说过喜欢哪个游戏？","expected_uris":["viking://memories/users/names/preferences.md"],"expected_level":"L1","difficulty":"medium"}
+{"id":"memory-012","query":"群友们都聊了什么话题？","expected_uris":["viking://memories/agents/astrbot/conversations/"],"expected_level":"L0","difficulty":"medium"}
+{"id":"memory-013","query":"有哪些跨 Agent 共享的上下文？","expected_uris":["viking://memories/shared/"],"expected_level":"L0","difficulty":"easy"}
+{"id":"memory-014","query":"用户的生日是什么时候？","expected_uris":["viking://memories/users/names/facts.md"],"expected_level":"L1","difficulty":"easy"}
+{"id":"memory-015","query":"dsh 上次执行了什么任务？","expected_uris":["viking://memories/agents/dsh/task_history/"],"expected_level":"L0","difficulty":"easy"}
+{"id":"memory-016","query":"项目代码仓库在哪里？","expected_uris":["viking://resources/digital-genesis/code"],"expected_level":"L0","difficulty":"easy"}
+{"id":"memory-017","query":"有哪些沉淀下来的工作流经验？","expected_uris":["viking://skills/"],"expected_level":"L0","difficulty":"easy"}
+{"id":"memory-018","query":"用户讨厌什么样的回复方式？","expected_uris":["viking://memories/users/names/preferences.md"],"expected_level":"L1","difficulty":"medium"}
+{"id":"memory-019","query":"部署失败时应该参考什么经验？","expected_uris":["viking://skills/debug-docker/"],"expected_level":"L1","difficulty":"hard"}
+{"id":"memory-020","query":"麦麦的人格设定参考了哪些记忆？","expected_uris":["viking://memories/agents/maibot/diary/"],"expected_level":"L0","difficulty":"hard"}
