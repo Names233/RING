@@ -15,6 +15,7 @@ EXPECTED_DOCUMENTS = [
     "docs/PERSONA_PLAN_B_DESIGN.md",
     "docs/SECURITY_TRUST_MODEL.md",
     "docs/ACP_BRIDGE_WIRE_SCHEMA.md",
+    "docs/AIRI_EMBODIMENT_DESIGN.md",
     "docs/DEVELOPMENT_ROADMAP.md",
     "evals/README.md",
 ]
@@ -31,6 +32,7 @@ INDEX_FILES = {
         "./docs/PERSONA_PLAN_B_DESIGN.md",
         "./docs/SECURITY_TRUST_MODEL.md",
         "./docs/ACP_BRIDGE_WIRE_SCHEMA.md",
+        "./docs/AIRI_EMBODIMENT_DESIGN.md",
         "./docs/DEVELOPMENT_ROADMAP.md",
     ],
     "DEVELOPMENT.md": [
@@ -44,6 +46,7 @@ INDEX_FILES = {
         "docs/PERSONA_PLAN_B_DESIGN.md",
         "docs/SECURITY_TRUST_MODEL.md",
         "docs/ACP_BRIDGE_WIRE_SCHEMA.md",
+        "docs/AIRI_EMBODIMENT_DESIGN.md",
         "docs/DEVELOPMENT_ROADMAP.md",
     ],
 }
@@ -138,3 +141,21 @@ def test_roadmap_counts_current_eval_cases() -> None:
     persona_cases = len((REPO_ROOT / "evals/persona/cases.jsonl").read_text(encoding="utf-8").splitlines())
     memory_cases = len((REPO_ROOT / "evals/memory/cases.jsonl").read_text(encoding="utf-8").splitlines())
     assert f"routing {routing_cases} / persona {persona_cases} / memory {memory_cases}" in roadmap
+
+AIRI_SECTIONS = [
+    "定位与边界",
+    "A2A 请求契约",
+    "emotion → 表现映射",
+    "OpenViking 记忆读写",
+    "事件总线联动",
+    "场景联动清单",
+    "MCP 接入配置片段",
+    "失败降级矩阵",
+    "验收标准",
+]
+
+
+def test_airi_design_covers_required_sections() -> None:
+    airi_doc = (REPO_ROOT / "docs/AIRI_EMBODIMENT_DESIGN.md").read_text(encoding="utf-8")
+    for section in AIRI_SECTIONS:
+        assert section in airi_doc, f"AIRI document missing section: {section}"

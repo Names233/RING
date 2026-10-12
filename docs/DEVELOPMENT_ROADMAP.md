@@ -21,7 +21,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 | Phase 2 | 🟢 文档先行 | ACP Bridge 参考实现 + 流式映射设计已完成 |
 | Phase 3 | 🟢 原型落地 | 路由设计 + 纯函数路由原型 + routing eval 已完成 |
 | Phase 4 | 🟢 原型落地 | Persona 契约 + Plan B 设计 + 纯函数原型 + eval 已完成 |
-| Phase 5 | ⬜ 未开始 | AIRI 接入文档尚未细化 |
+| Phase 5 | 🟢 原型落地 | AIRI 接入设计文档 + 表现层纯函数原型已完成 |
 | Phase 6 | 🟡 持续进行 | 三类评估集已建，runner 与 eval-all 聚合入口已实现 |
 
 ## 2. Phase 0：基础设施与文档基线
@@ -136,11 +136,22 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 
 ## 7. Phase 5：化身（AIRI）
 
-**文档缺口**（当前最大空白之一）：
-- [ ] AIRI ↔ OpenViking 记忆读写设计
-- [ ] 事件总线联动场景清单（直播 / 游戏 / 日常）
-- [ ] MCP 接入配置片段
-- [ ] 表现层与 Persona 输出（emotion）映射设计
+**已完成（文档）**：
+- [x] AIRI ↔ OpenViking 记忆读写设计（`docs/AIRI_EMBODIMENT_DESIGN.md` 第 5 节）
+- [x] 事件总线联动场景清单（直播 / 游戏 / 日常，第 7 节）
+- [x] MCP 接入配置片段（第 8 节）
+- [x] 表现层与 Persona 输出（emotion）映射设计（第 4 节）
+- [x] 事件 payload schema（第 6 节）
+- [x] 失败降级矩阵（第 9 节）
+
+**已完成（代码骨架）**：
+- [x] 表现层纯函数原型（`airi_embodiment/`，emotion 映射 + 资源缺失降级测试）
+- [x] A2A embodiment 请求/响应序列化与 NATS 事件生成
+
+**剩余**：
+- [ ] 事件 payload JSON Schema 冻结
+- [ ] AIRI MCP 凭证与 ACL 配置（暂缓部署）
+- [ ] 本地记忆迁移脚本适配 AIRI 目录结构
 
 ### 退出标准
 - AIRI 不再落本地私有记忆。

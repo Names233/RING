@@ -23,9 +23,11 @@ digital-genesis/
 │   ├── PERSONA_PLAN_B_DESIGN.md
 │   ├── SECURITY_TRUST_MODEL.md
 │   ├── ACP_BRIDGE_WIRE_SCHEMA.md
+│   ├── AIRI_EMBODIMENT_DESIGN.md
 │   └── DEVELOPMENT_ROADMAP.md
 ├── persona_plan_b/     # Persona Plan B 纯函数原型（两段式流水线）
 ├── astrbot_router/      # AstrBot 一级路由纯函数原型（规则 + 模型降级）
+├── airi_embodiment/     # AIRI 化身表现层纯函数原型（emotion 映射 + 降级）
 ├── evals/
 │   ├── routing/cases.jsonl
 │   ├── persona/
@@ -62,6 +64,8 @@ digital-genesis/
 | 安全与信任模型 | ✅ 已文档化 | 信任分级、6 类威胁、密钥与数据分级、验收清单 |
 | ACP Bridge Wire Schema | ✅ 已文档化 | v1 冻结草案、错误映射、7 条验收用例 |
 | 开发路线图 | ✅ 已文档化 | Phase 0–6 状态、剩余工作、风险登记表 |
+| AIRI 接入设计 | ✅ 已文档化 | A2A 契约、emotion 映射、OpenViking 读写、事件 payload、降级矩阵 |
+| AIRI 表现层原型 | ✅ 纯函数骨架 | 8 种 emotion 映射、缺失资源降级至表情/idle、A2A 响应序列化、NATS 事件生成 |
 | Memory 评估初始集 | ✅ 50 条 | `evals/memory/cases.jsonl`，覆盖全部 namespace 类型，L0 ≥ 12 条 |
 | 评估 runner | ✅ 可用 | `scripts/run_evals.py`，routing/memory/persona 指标 + 阈值门禁 |
 | Persona Plan B 原型 | ✅ 纯函数骨架 | `persona_plan_b/`，Stage 1/2 prompt、解析、降级、契约校验、长度约束 |
@@ -160,8 +164,8 @@ python scripts/run_evals.py all --baseline
 1. ACP notification 传输层接入（`StreamMapper` 已就绪，待接真实 dsh）
 2. AstrBot 路由意图分类器接入（`intent-router` 模型主路径，规则已就绪）
 3. Persona Plan B 接入 Persona Provider 契约层并跑 persona eval 全集
-4. AIRI 接入设计文档（记忆读写、事件 payload、emotion 映射）
-5. Persona Plan B 服务化（A2A 契约层）
+4. Persona Plan B 服务化（A2A 契约层）
+5. OpenViking 记忆生命周期与 L0/L1/L2 摘要策略细化
 6. A2A `message/send` 最终规范发布后，冻结 bridge wire schema
 7. 部署文档暂缓，待代码骨架稳定后再写
 
@@ -182,4 +186,5 @@ python scripts/run_evals.py all --baseline
 - `docs/PERSONA_PLAN_B_DESIGN.md`：两段式自研 Persona 流水线
 - `docs/SECURITY_TRUST_MODEL.md`：信任分级、威胁模型与安全验收清单
 - `docs/ACP_BRIDGE_WIRE_SCHEMA.md`：Bridge v1 wire 冻结草案与错误映射
+- `docs/AIRI_EMBODIMENT_DESIGN.md`：AIRI 化身层接入设计
 - `docs/DEVELOPMENT_ROADMAP.md`：Phase 0–6 当前状态、剩余工作与风险登记表

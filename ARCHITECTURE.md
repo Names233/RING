@@ -544,8 +544,9 @@ volumes:
 - [ ] 编写降级方案（Plan B）的触发判断 + 人格生成 pipeline
 
 ### Phase 5：化身接入（1–2 周）
-- [ ] AIRI 记忆读写切到 OpenViking
-- [ ] 直播/游戏场景 + 事件总线联动
+- [x] AIRI 记忆读写切到 OpenViking（设计：`docs/AIRI_EMBODIMENT_DESIGN.md`）
+- [x] 直播/游戏场景 + 事件总线联动（场景清单与 payload schema 已定义）
+- [ ] 表现层原型实现与联调（暂缓部署）
 
 ### Phase 6：评估闭环（持续）
 - [ ] 人格一致性 eval 集
