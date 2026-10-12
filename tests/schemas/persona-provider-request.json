@@ -1,0 +1,29 @@
+{
+  "message": {
+    "role": "user",
+    "parts": [{ "type": "text", "text": "今天有什么新部署吗？" }]
+  },
+  "group_context": {
+    "platform": "qq",
+    "conversation_id": "group:123456",
+    "speaker_id": "u:names",
+    "speaker_name": "Names",
+    "at_me": false,
+    "recent_messages": [
+      {
+        "speaker_id": "u:friend",
+        "text": "刚刚 CI 好像过了",
+        "timestamp": "2026-10-12T08:00:00Z"
+      }
+    ]
+  },
+  "recalled_memory": {
+    "fragments": [
+      {
+        "uri": "viking://memories/users/names/preferences.md",
+        "summary": "偏好简洁回复",
+        "level": "L1"
+      }
+    ]
+  }
+}

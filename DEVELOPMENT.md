@@ -14,9 +14,15 @@ digital-genesis/
 │   ├── litellm.yaml     # 模型网关配置模板
 │   ├── soul.example.yaml# 共享 Soul 配置模板
 │   └── validate.py      # 配置结构校验器
+├── docs/
+│   ├── PERSONA_PROVIDER_CONTRACT.md
+│   └── OPENVIKING_PERMISSION_MATRIX.md
+├── schemas/
+│   ├── persona-provider.schema.json
+│   └── persona-provider-response.schema.json
 ├── scripts/
 │   └── migrate_mempalace_to_openviking.py
-└── tests/               # 仓库级测试（配置、迁移脚本）
+└── tests/               # 仓库级测试（配置、迁移、契约）
 ```
 
 ## 工程状态（2026-10-12）
@@ -30,6 +36,8 @@ digital-genesis/
 | 配置校验器 | ✅ 可用 | `python config/validate.py` |
 | MemPalace → OpenViking 迁移脚本 | ✅ 可用 | 支持 JSON/JSONL，输出 Markdown + front matter |
 | CI | ✅ 已配置 | GitHub Actions，矩阵运行根目录与 acp-bridge 测试 |
+| Persona Provider 契约 | ✅ 已冻结 | 请求/响应 JSON Schema + 示例 + 不变量 |
+| OpenViking 权限矩阵 | ✅ 已文档化 | 写隔离、双写者、Bridge 只读、删除审核 |
 | 本地部署 | ⏸ 暂缓 | 按当前目标，先完善开发文档与代码骨架 |
 
 ## ACP ↔ A2A Bridge
@@ -102,15 +110,15 @@ python scripts/migrate_mempalace_to_openviking.py input.jsonl --output ./viking-
 ## 待办（按优先级）
 
 1. 接入真实 dsh ACP endpoint，补齐 `session/update` → A2A streaming event 映射
-2. 明确 A2A `message/send` 最终规范字段，冻结 wire schema
-3. 编写 AstrBot 路由插件设计文档（chat/tech/embodiment 三路由）
-4. Persona Provider A2A 契约 JSON Schema
-5. OpenViking 权限矩阵文档化（哪个 Agent 可写哪个 namespace）
-6. 评估集设计：人格一致性 / 记忆召回 / 路由准确率
-7. 部署文档暂缓，待代码骨架稳定后再写
+2. 编写 AstrBot 路由插件设计文档（chat/tech/embodiment 三路由）
+3. Persona Provider 的 Plan B 实现与 MaiBot 共用 eval 集
+4. 评估集设计：人格一致性 / 记忆召回 / 路由准确率
+5. A2A `message/send` 最终规范发布后，冻结 bridge wire schema
+6. 部署文档暂缓，待代码骨架稳定后再写
 
 ## 贡献约定
 
 - 架构变更先改 `ARCHITECTURE.md`，再落代码或配置
 - 新增配置必须加入 `config/validate.py` 的结构校验
 - bridge 保持“薄”：业务逻辑放 AstrBot / dsh / OpenViking，协议翻译放 bridge
+
