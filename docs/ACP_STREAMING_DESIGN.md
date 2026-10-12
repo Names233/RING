@@ -84,10 +84,10 @@
 
 | 阶段 | 内容 |
 |---|---|
-| Step 1 | ACP client 支持 JSON-RPC notification 监听 |
-| Step 2 | bridge 内部事件总线：ACP notification → 映射函数 → A2A emitter |
-| Step 3 | 单元测试：每种 `sessionUpdate` 类型至少一个用例 |
-| Step 4 | 集成真实 dsh，验证事件顺序与 terminal 语义 |
+| Step 1 | 🟡 notification 解析已实现（`parse_notification`）；传输层监听待接真实 dsh |
+| Step 2 | 🟡 纯函数映射已实现（`StreamMapper`）；A2A emitter 待传输层接入 |
+| Step 3 | ✅ 单元测试：每种 `sessionUpdate` 类型至少一个用例 |
+| Step 4 | 集成真实 dsh，验证事件顺序与 terminal 语义（含 `session/cancel` 断连路径） |
 | Step 5 | Langfuse span 接入 |
 
 ## 8. 验收标准

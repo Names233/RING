@@ -21,6 +21,9 @@ class ACPHandler(httpx.MockTransport):
             result = {"protocolVersion": 1, "agentCapabilities": {}}
         elif method == "session/new":
             result = {"sessionId": "session-123"}
+        elif method == "session/cancel":
+            assert body["params"] == {"sessionId": "session-123"}
+            result = {"ok": True}
         elif method == "session/prompt":
             assert body["params"]["prompt"] == [{"type": "text", "text": "deploy service"}]
             result = {"stopReason": "end_turn"}
@@ -85,3 +88,15 @@ async def test_rpc_error_is_wrapped():
         client = ACPClient("http://dsh.test/rpc")
         with pytest.raises(ACPError, match="initialize failed"):
             await client.run_task(make_request(), http=http)
+
+
+async def test_cancel_session_sends_session_cancel():
+    handler = ACPHandler()
+    async with httpx.AsyncClient(transport=handler, timeout=5) as http:
+        client = ACPClient("http://dsh.test/rpc")
+        await client.initialize(http)
+        await client.new_session(http)
+        await client.cancel_session(http, "session-123")
+
+    assert handler.calls[-1]["method"] == "session/cancel"
+    assert handler.calls[-1]["params"] == {"sessionId": "session-123"}
