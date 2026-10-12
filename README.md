@@ -83,4 +83,5 @@ AstrBot (耳目) ── 平台接入 / 意图路由 / 消息收发
 - [Persona Plan B 设计](./docs/PERSONA_PLAN_B_DESIGN.md)
 - [安全与信任模型](./docs/SECURITY_TRUST_MODEL.md)
 - [ACP Bridge Wire Schema](./docs/ACP_BRIDGE_WIRE_SCHEMA.md)
+- [AIRI 化身层接入设计](./docs/AIRI_EMBODIMENT_DESIGN.md)
 - [开发路线图](./docs/DEVELOPMENT_ROADMAP.md)
