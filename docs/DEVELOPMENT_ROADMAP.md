@@ -73,15 +73,23 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 - `docs/ACP_STREAMING_DESIGN.md`：9 种 sessionUpdate 映射。
 - `docs/ACP_BRIDGE_WIRE_SCHEMA.md`：v1 wire 冻结草案。
 - 7 个 bridge 测试。
+- `streaming.py`：9 种 `sessionUpdate` 纯函数映射 + terminal 一次性语义。
+- `session/cancel` RPC 方法与 mock 传输测试。
+
+### 已完成（代码骨架）
+- [x] ACP notification 解析（`parse_notification`）
+- [x] 9 种 `sessionUpdate` 映射（顺序保持、thought/usage 仅内部）
+- [x] terminal 一次性语义测试
+- [x] `session/cancel` RPC 方法
 
 ### 剩余
-- [ ] ACP client 流式 notification 监听
-- [ ] `session/cancel` 断连处理
+- [ ] notification 传输层监听（HTTP/SSE，待真实 dsh）
+- [ ] 客户端断开时自动调用 `session/cancel` 的端到端路径
 - [ ] dsh 沙箱与命令白名单配置文档
 - [ ] 真实 dsh 联调（暂缓）
 
 ### 退出标准
-- 全部 9 种 `sessionUpdate` 有测试覆盖。
+- 全部 9 种 `sessionUpdate` 有测试覆盖（已实现：`acp-bridge/tests/test_streaming.py`）。
 - 断连后 5 秒内发出 `session/cancel`。
 - Bridge 代码不超过"薄层"边界（无业务逻辑、无密钥）。
 

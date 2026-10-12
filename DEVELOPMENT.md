@@ -44,7 +44,7 @@ digital-genesis/
 | 组件 | 状态 | 说明 |
 |---|---|---|
 | v3 架构文档 | ✅ 已定稿 | 见 `ARCHITECTURE.md` |
-| ACP↔A2A bridge | 🟡 参考实现 | 已实现 JSON-RPC handshake / `session/new` / `session/prompt`，暂未接真实 dsh |
+| ACP↔A2A bridge | 🟡 参考实现 | 已实现 JSON-RPC handshake / `session/new` / `session/prompt` / `session/cancel`；流式映射见 `acp-bridge/.../streaming.py`，暂未接真实 dsh |
 | LiteLLM 配置模板 | ✅ 已提供 | `config/litellm.yaml`，覆盖五个路由模型与 fallback |
 | Soul 配置模板 | ✅ 已提供 | `config/soul.example.yaml` |
 | 配置校验器 | ✅ 可用 | `python config/validate.py` |
@@ -65,6 +65,7 @@ digital-genesis/
 | 评估 runner | ✅ 可用 | `scripts/run_evals.py`，routing/memory/persona 指标 + 阈值门禁 |
 | Persona Plan B 原型 | ✅ 纯函数骨架 | `persona_plan_b/`，Stage 1/2 prompt、解析、降级、契约校验、长度约束 |
 | eval-all 聚合入口 | ✅ 可用 | `python scripts/run_evals.py all --baseline`，缺失预测自动跳过 |
+| ACP 流式映射原型 | ✅ 纯函数骨架 | 9 种 `sessionUpdate` 映射、terminal 一次性语义、thought/usage 仅入 Langfuse、未知事件忽略 |
 | 本地部署 | ⏸ 暂缓 | 按当前目标，先完善开发文档与代码骨架 |
 
 ## ACP ↔ A2A Bridge
@@ -86,7 +87,7 @@ dsh (ACP JSON-RPC)
 
 ### 设计约束
 
-1. **不模拟流式**：当前实现为同步 request/response。`session/update` 流式事件映射会在接入真实 dsh 后补充，避免凭空定义行为。
+1. **流式映射已定义，传输层未接**：`streaming.py` 提供纯函数映射与 terminal 语义；HTTP/SSE 传输会在接入真实 dsh 后补充，避免凭空定义行为。
 2. **每个 A2A task 一个 ACP session**：简单可靠；session 复用策略待真实压测后决定。
 3. **错误语义**：ACP/RPC 错误映射为 A2A task `failed`，而不是 HTTP 500，便于上游重试与追踪。
 4. **安全**：bridge 不挂载 Docker socket，不持有模型 Key；模型调用由 dsh 经 LiteLLM 完成。
@@ -154,7 +155,7 @@ python scripts/run_evals.py all --baseline
 
 ## 待办（按优先级）
 
-1. ACP client 流式 notification 监听（按 `ACP_STREAMING_DESIGN.md` 实现）
+1. ACP notification 传输层接入（`StreamMapper` 已就绪，待接真实 dsh）
 2. AstrBot 纯函数路由引擎原型（关键词 + 正则降级路径）
 3. Persona Plan B 接入 Persona Provider 契约层并跑 persona eval 全集
 4. 评估集扩容至各 50 条（routing/persona/memory）

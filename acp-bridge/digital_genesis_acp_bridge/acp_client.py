@@ -64,6 +64,10 @@ class ACPClient:
             raise ACPError("session/new did not return sessionId")
         return str(session_id)
 
+    async def cancel_session(self, http: httpx.AsyncClient, session_id: str) -> None:
+        """Best-effort session/cancel used when the A2A client disconnects."""
+        await self._call(http, "session/cancel", {"sessionId": session_id})
+
     async def prompt(
         self,
         http: httpx.AsyncClient,
