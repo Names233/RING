@@ -39,6 +39,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 | 配置模板与校验 | ✅ | `config/` + `tests/test_config_validation.py` |
 | CI | ✅ | `.github/workflows/ci.yml` |
 | 文档索引测试 | ✅ | `tests/test_docs.py` |
+| 评估 runner | ✅ | `scripts/run_evals.py` + `tests/test_eval_runner.py` |
 
 ### 退出标准
 
@@ -136,14 +137,14 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 - routing 12 / persona 20 / memory 20 初始集。
 
 ### 剩余
-- [ ] 评估 runner（JSONL → Markdown/JSON 报告）
 - [ ] routing accuracy / macro-F1
 - [ ] memory hit@1 / hit@5 / MRR
 - [ ] persona 规则检查 + judge prompt 占位
 - [ ] CI 中运行规则检查，LLM judge 保持本地手动
 
 ### 退出标准
-- 一条命令产出全部评估报告。
+- 一条命令产出单维度评估报告（已实现：`scripts/run_evals.py`）。
+- 一条命令聚合三类报告（待实现：eval-all 入口）。
 - 阈值失败时非零退出码，可作合并门禁。
 
 ## 9. 风险登记表

@@ -1,4 +1,5 @@
 from pathlib import Path
+import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -117,6 +118,18 @@ def test_roadmap_covers_required_sections() -> None:
     roadmap = (REPO_ROOT / "docs/DEVELOPMENT_ROADMAP.md").read_text(encoding="utf-8")
     for section in ROADMAP_SECTIONS:
         assert section in roadmap, f"Roadmap missing section: {section}"
+
+
+def test_eval_design_documents_runner_and_threshold_source() -> None:
+    design = (REPO_ROOT / "docs" / "EVAL_DESIGN.md").read_text(encoding="utf-8")
+    readme = (REPO_ROOT / "evals" / "README.md").read_text(encoding="utf-8")
+    thresholds = yaml.safe_load((REPO_ROOT / "evals" / "thresholds.yaml").read_text(encoding="utf-8"))
+
+    assert "scripts/run_evals.py" in design
+    assert "evals/thresholds.yaml" in design
+    assert "scripts/run_evals.py" in readme
+    assert thresholds["routing"]["accuracy"] == 0.90
+    assert thresholds["memory"]["hit_at_5"] == 0.85
 
 
 def test_roadmap_counts_current_eval_cases() -> None:

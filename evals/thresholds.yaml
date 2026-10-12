@@ -1,0 +1,10 @@
+routing:
+  accuracy: 0.90
+  macro_f1: 0.85
+  chat_to_tech_rate: 0.05
+memory:
+  hit_at_5: 0.85
+  level_match: 0.70
+persona:
+  max_average_score_regression: 0.5
+  minimum_average_judge_score: 3.0

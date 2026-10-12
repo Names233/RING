@@ -32,3 +32,6 @@ jobs:
         run: python config/validate.py
       - name: Run tests
         run: pytest -q
+
+      - name: Offline eval gate
+        run: python scripts/run_evals.py routing --baseline --enforce-thresholds

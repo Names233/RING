@@ -61,6 +61,7 @@ digital-genesis/
 | ACP Bridge Wire Schema | ✅ 已文档化 | v1 冻结草案、错误映射、7 条验收用例 |
 | 开发路线图 | ✅ 已文档化 | Phase 0–6 状态、剩余工作、风险登记表 |
 | Memory 评估初始集 | ✅ 20 条 | `evals/memory/cases.jsonl`，覆盖全部 namespace 类型 |
+| 评估 runner | ✅ 可用 | `scripts/run_evals.py`，routing/memory/persona 指标 + 阈值门禁 |
 | 本地部署 | ⏸ 暂缓 | 按当前目标，先完善开发文档与代码骨架 |
 
 ## ACP ↔ A2A Bridge
@@ -122,6 +123,21 @@ python scripts/migrate_mempalace_to_openviking.py input.jsonl --output ./viking-
 - 无 `user_id` → `agents/shared/`
 - 类型不在 `preference/fact/episode/relationship` 中时归一化为 `fact`
 - 文件名由 `id` slug 化生成，重复执行幂等
+
+## 离线评估
+
+```bash
+# routing 基线（无需模型）
+python scripts/run_evals.py routing --baseline --enforce-thresholds
+
+# memory / persona 使用预测文件
+python scripts/run_evals.py memory --predictions predictions.jsonl --enforce-thresholds
+python scripts/run_evals.py persona --predictions responses.jsonl --enforce-thresholds
+```
+
+- 阈值集中在 `evals/thresholds.yaml`，与 `docs/EVAL_DESIGN.md` 对齐
+- `--enforce-thresholds` 失败时非零退出，可作为合并门禁
+- 输出支持 Markdown 与 JSON，`--output` 可指定报告文件
 
 ## CI
 
