@@ -19,7 +19,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 | Phase 0 | 🟡 进行中 | 文档、契约、评估集、测试已就绪；本地部署暂缓 |
 | Phase 1 | 🟢 文档先行 | 权限矩阵、迁移脚本、memory eval 已完成 |
 | Phase 2 | 🟢 文档先行 | ACP Bridge 参考实现 + 流式映射设计已完成 |
-| Phase 3 | 🟢 文档先行 | 路由设计与 routing eval 已完成 |
+| Phase 3 | 🟢 原型落地 | 路由设计 + 纯函数路由原型 + routing eval 已完成 |
 | Phase 4 | 🟢 原型落地 | Persona 契约 + Plan B 设计 + 纯函数原型 + eval 已完成 |
 | Phase 5 | ⬜ 未开始 | AIRI 接入文档尚未细化 |
 | Phase 6 | 🟡 持续进行 | 三类评估集已建，runner 与 eval-all 聚合入口已实现 |
@@ -99,14 +99,18 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 - `docs/ASTRBOT_ROUTER_DESIGN.md`：三路由决策树 + 故障降级。
 - `evals/routing/cases.jsonl`：12 条初始集。
 
+### 已完成（代码骨架）
+- [x] 纯函数路由引擎原型（关键词 + 正则降级路径，`astrbot_router/`）
+- [x] confidence < 0.6 降级测试
+- [x] eval baseline 与部署降级路径共用同一实现
+
 ### 剩余
-- [ ] 纯函数路由引擎原型（关键词 + 正则降级路径）
-- [ ] confidence < 0.6 降级测试
+- [ ] `intent-router` 模型主路径接入
 - [ ] routing eval 扩展到 ≥ 50 条
 
 ### 退出标准
 - accuracy ≥ 90%，macro-F1 ≥ 0.85。
-- 意图分类器不可用时可完整降级，且降级倾向 `chat`。
+- 意图分类器不可用时可完整降级，且降级倾向 `chat`（规则路径已实现并测试）。
 
 ## 6. Phase 4：Persona Provider（MaiBot / Plan B）
 

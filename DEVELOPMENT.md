@@ -25,6 +25,7 @@ digital-genesis/
 │   ├── ACP_BRIDGE_WIRE_SCHEMA.md
 │   └── DEVELOPMENT_ROADMAP.md
 ├── persona_plan_b/     # Persona Plan B 纯函数原型（两段式流水线）
+├── astrbot_router/      # AstrBot 一级路由纯函数原型（规则 + 模型降级）
 ├── evals/
 │   ├── routing/cases.jsonl
 │   ├── persona/
@@ -66,6 +67,7 @@ digital-genesis/
 | Persona Plan B 原型 | ✅ 纯函数骨架 | `persona_plan_b/`，Stage 1/2 prompt、解析、降级、契约校验、长度约束 |
 | eval-all 聚合入口 | ✅ 可用 | `python scripts/run_evals.py all --baseline`，缺失预测自动跳过 |
 | ACP 流式映射原型 | ✅ 纯函数骨架 | 9 种 `sessionUpdate` 映射、terminal 一次性语义、thought/usage 仅入 Langfuse、未知事件忽略 |
+| AstrBot 路由引擎原型 | ✅ 纯函数骨架 | 显式触发词、confidence < 0.6 回落 chat、模型不可用规则降级；eval baseline 复用同一实现 |
 | 本地部署 | ⏸ 暂缓 | 按当前目标，先完善开发文档与代码骨架 |
 
 ## ACP ↔ A2A Bridge
@@ -156,7 +158,7 @@ python scripts/run_evals.py all --baseline
 ## 待办（按优先级）
 
 1. ACP notification 传输层接入（`StreamMapper` 已就绪，待接真实 dsh）
-2. AstrBot 纯函数路由引擎原型（关键词 + 正则降级路径）
+2. AstrBot 路由意图分类器接入（`intent-router` 模型主路径，规则已就绪）
 3. Persona Plan B 接入 Persona Provider 契约层并跑 persona eval 全集
 4. 评估集扩容至各 50 条（routing/persona/memory）
 5. AIRI 接入设计文档（记忆读写、事件 payload、emotion 映射）
