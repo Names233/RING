@@ -306,9 +306,69 @@ def render_markdown(report: dict[str, Any], threshold_failures: list[str]) -> st
     return "\n".join(lines) + "\n"
 
 
+def run_all(args: argparse.Namespace) -> int:
+    """Run routing baseline plus any memory/persona dimensions with prediction files."""
+    threshold_failures: list[str] = []
+    report_outputs: list[str] = []
+
+    routing_cases = load_jsonl(args.cases or DEFAULT_CASES["routing"])
+    routing_predictions = (
+        generate_routing_predictions(routing_cases)
+        if args.baseline or not args.predictions
+        else load_jsonl(args.predictions)
+    )
+    routing_report = evaluate_routing(routing_cases, routing_predictions)
+    thresholds = load_thresholds(args.thresholds)
+    failures = enforce_thresholds(routing_report, thresholds)
+    rendered = render_markdown(routing_report, failures)
+    report_outputs.append(rendered)
+    threshold_failures.extend(f"routing: {failure}" for failure in failures)
+
+    for kind in ("memory", "persona"):
+        candidate_paths: list[Path] = []
+        if args.predictions:
+            candidate_paths.append(Path(args.predictions))
+        if args.output:
+            candidate_paths.append(args.output.with_suffix(f".{kind}.jsonl"))
+        candidate_paths.append(DEFAULT_CASES[kind].with_name("predictions.jsonl"))
+        prediction_path = next((path for path in candidate_paths if path.is_file()), None)
+        if prediction_path is None:
+            report_outputs.append(f"# {kind.capitalize()} eval report\n\n- status: skipped (no prediction file)\n")
+            continue
+        cases = load_jsonl(DEFAULT_CASES[kind])
+        predictions = load_jsonl(prediction_path)
+        if {item["id"] for item in predictions} != {case["id"] for case in cases}:
+            report_outputs.append(f"# {kind.capitalize()} eval report\n\n- status: skipped (prediction ids do not match cases)\n")
+            continue
+        report = evaluate_memory(cases, predictions) if kind == "memory" else evaluate_persona(cases, predictions)
+        failures = enforce_thresholds(report, thresholds)
+        rendered = render_markdown(report, failures)
+        report_outputs.append(rendered)
+        threshold_failures.extend(f"{kind}: {failure}" for failure in failures)
+
+    combined = "# Digital Genesis eval report\n\n" + "\n---\n\n".join(report_outputs)
+    rendered = json.dumps({"routing": routing_report}, ensure_ascii=False, indent=2) + "\n" if args.format == "json" else combined
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(rendered, encoding="utf-8")
+    else:
+        sys.stdout.write(rendered)
+
+    if threshold_failures:
+        print("threshold failures:", file=sys.stderr)
+        for failure in threshold_failures:
+            print(f"- {failure}", file=sys.stderr)
+    return 1 if threshold_failures and args.enforce_thresholds else 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run offline Digital Genesis eval sets")
-    parser.add_argument("kind", choices=sorted(DEFAULT_CASES), help="eval dimension")
+    parser.add_argument(
+        "kind",
+        nargs="?",
+        choices=(*sorted(DEFAULT_CASES), "all"),
+        help="eval dimension; `all` runs every dimension with an available prediction source",
+    )
     parser.add_argument("--cases", type=Path, help="case JSONL path (defaults to evals/<kind>/cases.jsonl)")
     parser.add_argument("--predictions", type=Path, help="prediction JSONL path")
     parser.add_argument("--baseline", action="store_true", help="use the deterministic routing baseline")
@@ -326,6 +386,8 @@ def main(argv: list[str] | None = None) -> int:
     if sys.stderr.encoding and sys.stderr.encoding.lower() not in {"utf-8", "utf8"}:
         sys.stderr.reconfigure(encoding="utf-8")
     args = build_parser().parse_args(argv)
+    if args.kind == "all":
+        return run_all(args)
     cases_path = args.cases or DEFAULT_CASES[args.kind]
     cases = load_jsonl(cases_path)
 

@@ -117,3 +117,58 @@ def test_output_file_is_created(tmp_path: Path):
     assert result.returncode == 0, result.stderr
     assert output.is_file()
     assert json.loads(output.read_text(encoding="utf-8"))["kind"] == "routing"
+import json
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+RUNNER = ROOT / "scripts" / "run_evals.py"
+
+
+def run_runner(arguments: list[str]) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(RUNNER), *arguments],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+
+
+def test_eval_all_runs_routing_baseline_and_skips_missing_predictions():
+    result = run_runner(["all", "--baseline"])
+    assert result.returncode == 0, result.stderr
+    assert "# Digital Genesis eval report" in result.stdout
+    assert "# Routing eval report" in result.stdout
+    assert "# Memory eval report" in result.stdout
+    assert "skipped (no prediction file)" in result.stdout
+    assert "# Persona eval report" in result.stdout
+
+
+def test_eval_all_reads_sibling_prediction_files(tmp_path: Path):
+    # Build perfect memory predictions to exercise the memory aggregation path.
+    cases = [json.loads(line) for line in (ROOT / "evals" / "memory" / "cases.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
+    predictions = [{"id": case["id"], "retrieved": [{"uri": case["expected_uris"][0], "level": case["expected_level"]}]} for case in cases]
+    output = tmp_path / "report.md"
+    prediction_file = tmp_path / "memory.jsonl"
+    prediction_file.write_text("\n".join(json.dumps(item) for item in predictions) + "\n", encoding="utf-8")
+
+    result = run_runner(["all", "--baseline", "--predictions", str(prediction_file), "--output", str(output)])
+    assert result.returncode == 0, result.stderr
+    rendered = output.read_text(encoding="utf-8")
+    assert "# Memory eval report" in rendered
+    assert "- hit_at_5: 1.000" in rendered
+    assert "# Persona eval report" in rendered
+
+
+def test_eval_all_enforce_thresholds_gates_routing_failure(tmp_path: Path):
+    cases_file = tmp_path / "routing.jsonl"
+    cases_file.write_text(json.dumps({"id": "r1", "text": "今天好累啊", "expected_route": "chat"}, ensure_ascii=False) + "\n", encoding="utf-8")
+    predictions_file = tmp_path / "predictions.jsonl"
+    predictions_file.write_text(json.dumps({"id": "r1", "route": "tech"}) + "\n", encoding="utf-8")
+
+    result = run_runner(["all", "--cases", str(cases_file), "--predictions", str(predictions_file), "--enforce-thresholds"])
+    assert result.returncode == 1
+    assert "routing: accuracy" in result.stderr
