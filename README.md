@@ -66,3 +66,7 @@ AstrBot (耳目) ── 平台接入 / 意图路由 / 消息收发
 ## 详细设计
 
 👉 [ARCHITECTURE.md](./ARCHITECTURE.md)
+
+## 工程状态与开发流程
+
+👉 [DEVELOPMENT.md](./DEVELOPMENT.md)：仓库结构、ACP↔A2A bridge、配置校验、记忆迁移、CI 与待办清单。

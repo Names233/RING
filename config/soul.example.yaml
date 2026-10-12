@@ -1,0 +1,58 @@
+# Digital Genesis shared soul configuration.
+persona:
+  name: maimai
+  identity: digital life
+  speaking_style:
+    tone: casual
+    trigger_mode: dynamic
+  provider:
+    protocol: a2a
+    input: [message, group_context, recalled_memory]
+    output: [should_reply, text, emotion]
+
+perception:
+  platforms: [qq, telegram, discord]
+  message_enhancement_only: true
+  routing:
+    chat: maibot
+    tech: dsh
+    embodiment: airi
+
+execution:
+  acp_endpoint: http://dsh:3080
+  profile: headless
+  default_workdir: /workspace
+  sandbox: true
+  max_concurrent_tasks: 3
+
+memory:
+  viking_uri: viking://
+  backend: ragfs
+  mcp_profile: agent-plugin
+  namespaces:
+    resources: viking://resources/
+    memories:
+      users: viking://memories/users/
+      agents:
+        maibot: viking://memories/agents/maibot/
+        airi: viking://memories/agents/airi/
+        dsh: viking://memories/agents/dsh/
+        astrbot: viking://memories/agents/astrbot/
+      shared: viking://memories/shared/
+    skills: viking://skills/
+
+model_gateway:
+  base_url: http://litellm:4000/v1
+  routing:
+    persona-chat: persona-chat
+    persona-trigger: persona-trigger
+    coding-primary: coding-primary
+    intent-router: intent-router
+
+observability:
+  langfuse_url: http://langfuse:3000
+  trace_across_agents: true
+
+event_bus:
+  provider: nats
+  url: nats://nats:4222
