@@ -7,7 +7,7 @@
 | 维度 | 状态 | 样本数 | 说明 |
 |---|---|---:|---|
 | routing | ✅ 初始集 | 12 | 三类路由全覆盖，easy/medium 混合 |
-| persona | 🟡 待扩充 | 0 | 需要人设样本与 judge prompt |
+| persona | ✅ 初始集 | 20 | 含 judge prompt，easy/medium/hard 全覆盖 |
 | memory | 🟡 待扩充 | 0 | 需要真实 OpenViking URI 后补充 |
 
 ## 格式
