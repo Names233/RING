@@ -93,7 +93,20 @@ AstrBot 瘦身后只承担“感知与投递”职责，其中最关键的决策
 
 召回失败不阻塞路由；降级为无记忆模式并记录。
 
-## 7. 验收标准
+## 7. 实现状态
+
+| 能力 | 状态 | 证据 |
+|---|---|---|
+| 规则路由（关键词 + 正则） | ✅ | `astrbot_router/core.py::rule_classify` |
+| 显式触发词优先 | ✅ | `_explicit_trigger`，可绕过 confidence 门禁 |
+| confidence < 0.6 回落 chat | ✅ | `classify()`，阈值可配置 |
+| 模型不可用降级 | ✅ | `model_route=None` 时走规则并标记 `degraded=True` |
+| 下游映射 | ✅ | `decide_downstream()`：persona / bridge / AIRI |
+| eval baseline 复用 | ✅ | `scripts/run_evals.py` 调用同一 `rule_classify`，routing 12/12 通过 |
+| 意图分类器主路径 | ⏳ | 待接 `intent-router` 模型（LiteLLM） |
+| AstrBot 插件接入 | ⏳ | 待真实 AstrBot 环境 |
+
+## 8. 验收标准
 
 1. 路由准确率 eval 集 ≥ 90%（`intent-router` 模型）
 2. 三条路由每条至少有 20 条标注样本
@@ -101,7 +114,7 @@ AstrBot 瘦身后只承担“感知与投递”职责，其中最关键的决策
 4. Langfuse 能按 `trace_id` 串联：入站消息 → 意图分类 → 路由 → 下游调用
 5. 路由插件本身无持久化状态；任何状态写入 OpenViking
 
-## 8. 路由测试集初始样本
+## 9. 路由测试集初始样本
 
 以下样本作为 `evals/routing/cases.jsonl` 的初始集，可直接复制使用：
 
