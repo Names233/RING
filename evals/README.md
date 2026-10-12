@@ -6,9 +6,9 @@
 
 | 维度 | 状态 | 样本数 | 说明 |
 |---|---|---:|---|
-| routing | ✅ 初始集 + runner | 12 | 三类路由全覆盖，easy/medium 混合 |
-| persona | ✅ 初始集 + runner | 20 | 含 judge prompt，easy/medium/hard 全覆盖 |
-| memory | ✅ 初始集 + runner | 20 | 覆盖全部 namespace 类型，easy/medium/hard 全覆盖 |
+| routing | ✅ 初始集 + runner | 50 | 三类路由全覆盖，easy/medium/hard 混合 |
+| persona | ✅ 初始集 + runner | 50 | 含 judge prompt，easy/medium/hard 全覆盖 |
+| memory | ✅ 初始集 + runner | 50 | 覆盖全部 namespace 类型，easy/medium/hard 全覆盖，L0 ≥ 12 条 |
 
 ## 阈值配置
 

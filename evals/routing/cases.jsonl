@@ -1,12 +1,50 @@
-{"id":"route-001","text":"帮我部署一下服务","expected_route":"tech","difficulty":"easy"}
-{"id":"route-002","text":"今天好累啊","expected_route":"chat","difficulty":"easy"}
-{"id":"route-003","text":"笑一下","expected_route":"embodiment","difficulty":"easy"}
-{"id":"route-004","text":"修一下这个报错","expected_route":"tech","difficulty":"easy"}
-{"id":"route-005","text":"这个梗好好笑","expected_route":"chat","difficulty":"easy"}
-{"id":"route-006","text":"用语音说一遍","expected_route":"embodiment","difficulty":"medium"}
-{"id":"route-007","text":"查一下昨天部署的日志","expected_route":"tech","difficulty":"medium"}
-{"id":"route-008","text":"有点想你了","expected_route":"chat","difficulty":"medium"}
-{"id":"route-009","text":"换个开心点的表情","expected_route":"embodiment","difficulty":"easy"}
-{"id":"route-010","text":"跑下测试然后告诉我结果","expected_route":"tech","difficulty":"medium"}
-{"id":"route-011","text":"早上好","expected_route":"chat","difficulty":"easy"}
-{"id":"route-012","text":"帮我看看这个仓库","expected_route":"tech","difficulty":"medium"}
+{"id": "route-001", "text": "帮我部署一下服务", "expected_route": "tech", "difficulty": "easy"}
+{"id": "route-002", "text": "今天好累啊", "expected_route": "chat", "difficulty": "easy"}
+{"id": "route-003", "text": "笑一下", "expected_route": "embodiment", "difficulty": "easy"}
+{"id": "route-004", "text": "修一下这个报错", "expected_route": "tech", "difficulty": "easy"}
+{"id": "route-005", "text": "这个梗好好笑", "expected_route": "chat", "difficulty": "easy"}
+{"id": "route-006", "text": "用语音说一遍", "expected_route": "embodiment", "difficulty": "medium"}
+{"id": "route-007", "text": "查一下昨天部署的日志", "expected_route": "tech", "difficulty": "medium"}
+{"id": "route-008", "text": "有点想你了", "expected_route": "chat", "difficulty": "medium"}
+{"id": "route-009", "text": "换个开心点的表情", "expected_route": "embodiment", "difficulty": "easy"}
+{"id": "route-010", "text": "跑下测试然后告诉我结果", "expected_route": "tech", "difficulty": "medium"}
+{"id": "route-011", "text": "早上好", "expected_route": "chat", "difficulty": "easy"}
+{"id": "route-012", "text": "帮我看看这个仓库", "expected_route": "tech", "difficulty": "medium"}
+{"id": "route-013", "text": "帮我构建一下 Docker 镜像", "expected_route": "tech", "difficulty": "easy"}
+{"id": "route-014", "text": "看看 CI 为什么挂了", "expected_route": "tech", "difficulty": "easy"}
+{"id": "route-015", "text": "把这个 bug 修掉", "expected_route": "tech", "difficulty": "easy"}
+{"id": "route-016", "text": "跑一下单元测试", "expected_route": "tech", "difficulty": "easy"}
+{"id": "route-017", "text": "调试一下这个接口", "expected_route": "tech", "difficulty": "easy"}
+{"id": "route-018", "text": "更新一下依赖版本", "expected_route": "tech", "difficulty": "medium"}
+{"id": "route-019", "text": "提交一下这次改动", "expected_route": "tech", "difficulty": "medium"}
+{"id": "route-020", "text": "合并到 master 分支", "expected_route": "tech", "difficulty": "medium"}
+{"id": "route-021", "text": "重启一下生产环境", "expected_route": "tech", "difficulty": "medium"}
+{"id": "route-022", "text": "升级一下 FastAPI", "expected_route": "tech", "difficulty": "medium"}
+{"id": "route-023", "text": "写个脚本自动化这件事", "expected_route": "tech", "difficulty": "medium"}
+{"id": "route-024", "text": "分析一下这个崩溃堆栈", "expected_route": "tech", "difficulty": "medium"}
+{"id": "route-025", "text": "优化一下这个 SQL 查询", "expected_route": "tech", "difficulty": "hard"}
+{"id": "route-026", "text": "重构一下这个模块", "expected_route": "tech", "difficulty": "hard"}
+{"id": "route-027", "text": "帮我做一个技术方案", "expected_route": "tech", "difficulty": "hard"}
+{"id": "route-028", "text": "调研一下向量数据库选型", "expected_route": "tech", "difficulty": "hard"}
+{"id": "route-029", "text": "这段代码有内存泄漏吗", "expected_route": "tech", "difficulty": "hard"}
+{"id": "route-030", "text": "怎么降低服务器成本", "expected_route": "tech", "difficulty": "hard"}
+{"id": "route-031", "text": "帮你把代码格式化一下", "expected_route": "tech", "difficulty": "medium"}
+{"id": "route-032", "text": "这个函数怎么写才优雅", "expected_route": "tech", "difficulty": "hard"}
+{"id": "route-033", "text": "数据库连接池怎么配", "expected_route": "tech", "difficulty": "hard"}
+{"id": "route-034", "text": "容器一直在重启怎么办", "expected_route": "tech", "difficulty": "hard"}
+{"id": "route-035", "text": "接口返回 500 怎么排查", "expected_route": "tech", "difficulty": "hard"}
+{"id": "route-036", "text": "写个 CI 检查 PR 标题", "expected_route": "tech", "difficulty": "medium"}
+{"id": "route-037", "text": "把文档同步一下", "expected_route": "tech", "difficulty": "medium"}
+{"id": "route-038", "text": "查一下最近的提交记录", "expected_route": "tech", "difficulty": "easy"}
+{"id": "route-039", "text": "看看磁盘占用情况", "expected_route": "tech", "difficulty": "medium"}
+{"id": "route-040", "text": "监控脚本挂了", "expected_route": "tech", "difficulty": "medium"}
+{"id": "route-041", "text": "缓存策略应该怎么设计", "expected_route": "tech", "difficulty": "hard"}
+{"id": "route-042", "text": "消息队列选哪个", "expected_route": "tech", "difficulty": "hard"}
+{"id": "route-043", "text": "权限系统怎么建模", "expected_route": "tech", "difficulty": "hard"}
+{"id": "route-044", "text": "日志采集方案评估", "expected_route": "tech", "difficulty": "hard"}
+{"id": "route-045", "text": "服务网格值得上吗", "expected_route": "tech", "difficulty": "hard"}
+{"id": "route-046", "text": "编译一直报权限错误", "expected_route": "tech", "difficulty": "hard"}
+{"id": "route-047", "text": "帮我审一下这个 PR", "expected_route": "tech", "difficulty": "medium"}
+{"id": "route-048", "text": "写个压测脚本", "expected_route": "tech", "difficulty": "medium"}
+{"id": "route-049", "text": "回滚到上个版本", "expected_route": "tech", "difficulty": "easy"}
+{"id": "route-050", "text": "环境变量加载顺序有问题", "expected_route": "tech", "difficulty": "hard"}

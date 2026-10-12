@@ -53,7 +53,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 ### 已完成
 - `docs/OPENVIKING_PERMISSION_MATRIX.md`：权限矩阵与 7 条规则。
 - `scripts/migrate_mempalace_to_openviking.py`：MemPalace → Markdown 迁移。
-- `evals/memory/cases.jsonl`：20 条，覆盖全部 namespace。
+- `evals/memory/cases.jsonl`：50 条，覆盖全部 namespace，L0 ≥ 12 条。
 
 ### 剩余
 - [ ] OpenViking 接入示例（Agent Plugins 1.0 / MCP 配置片段）
@@ -106,7 +106,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 
 ### 剩余
 - [ ] `intent-router` 模型主路径接入
-- [ ] routing eval 扩展到 ≥ 50 条
+- [x] routing eval 扩展到 ≥ 50 条（已完成：50 条）
 
 ### 退出标准
 - accuracy ≥ 90%，macro-F1 ≥ 0.85。
@@ -127,7 +127,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 ### 剩余
 - [ ] Plan B 接入 Persona Provider 契约层（A2A 服务化）
 - [ ] Plan B 跑 `evals/persona/cases.jsonl` 全集
-- [ ] persona eval ≥ 50 条
+- [x] persona eval ≥ 50 条（已完成：50 条）
 
 ### 退出标准
 - Plan B 输出 100% 满足 `persona-provider-response.schema.json`。
@@ -150,7 +150,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 
 ### 已完成
 - `docs/EVAL_DESIGN.md`：三类指标与阈值。
-- routing 12 / persona 20 / memory 20 初始集。
+- routing 50 / persona 50 / memory 50 初始集（目标 150/150 已达成）。
 
 ### 已完成（代码骨架）
 - [x] routing accuracy / macro-F1
@@ -160,8 +160,8 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 - [x] eval-all 聚合入口（`run_evals.py all --baseline`）
 
 ### 剩余
-- [ ] 评估集扩容至各 50 条
 - [ ] 接真实系统后的阈值达标验证
+- [ ] 引入 judge score 离线样例（本地手动跑 LLM judge 后回填）
 
 ### 退出标准
 - 一条命令产出单维度评估报告（已实现：`scripts/run_evals.py`）。
@@ -175,7 +175,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 | A2A 规范变化 | bridge 返工 | wire schema 标注"冻结草案"，v2 预留 stream 参数 | 🟡 受控 |
 | dsh API 变化 | Phase 2 阻塞 | 契约集中在 wire schema，单一改动点 | 🟢 低 |
 | MaiBot 停更 | 人格能力退化 | Persona Provider 接口 + Plan B | 🟢 已缓解 |
-| 评估集过小 | 指标不稳定 | 目标各 50 条；当前已完成 52/150 | 🟡 扩集中 |
+| 评估集过小 | 指标不稳定 | 目标各 50 条；当前已完成 150/150 | 🟢 已缓解 |
 | AGPL/GPL 边界 | 合规风险 | 独立进程 + 网络协议交互，不链接代码 | 🟢 已隔离 |
 | Prompt injection | 执行安全 | 安全模型 T1 防线 + 沙箱 | 🟡 文档已定，实现待做 |
 

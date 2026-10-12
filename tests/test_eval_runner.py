@@ -25,7 +25,7 @@ def test_routing_baseline_report_meets_thresholds():
     result = run_runner(["routing", "--baseline", "--format", "json"])
     assert result.returncode == 0, result.stderr
     report = json.loads(result.stdout)
-    assert report["case_count"] == 12
+    assert report["case_count"] >= 50
     assert report["accuracy"] >= 0.90
     assert report["macro_f1"] >= 0.85
     assert report["chat_to_tech_rate"] <= 0.05
