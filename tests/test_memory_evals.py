@@ -41,8 +41,9 @@ def test_memory_cases_are_l0_first():
     """Directory summary cases should prefer L0, mirroring OpenViking progressive context."""
     cases = load_jsonl(CASES)
     l0_cases = [case for case in cases if case["expected_level"] == "L0"]
-    assert len(l0_cases) >= 6
+    assert len(l0_cases) >= 12
     assert all(
-        case["expected_uris"][0].endswith("/") or "/docs" in case["expected_uris"][0] or "/code" in case["expected_uris"][0]
+        case["expected_uris"][0].endswith("/")
+        or any(part in case["expected_uris"][0] for part in ("/docs", "/code", "/config", "/evals"))
         for case in l0_cases
     ), "L0 cases should target directories or generated summaries"

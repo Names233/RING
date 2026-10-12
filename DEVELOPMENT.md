@@ -55,14 +55,14 @@ digital-genesis/
 | OpenViking 权限矩阵 | ✅ 已文档化 | 写隔离、双写者、Bridge 只读、删除审核 |
 | AstrBot 路由设计 | ✅ 已文档化 | 三路由决策树、意图分类器 I/O、五类故障降级 |
 | 评估集设计 | ✅ 已文档化 | 人格/记忆/路由三类指标与阈值 |
-| 路由评估初始集 | ✅ 12 条 | `evals/routing/cases.jsonl`，三类全覆盖 |
-| Persona 评估初始集 | ✅ 20 条 | `evals/persona/cases.jsonl`，easy/medium/hard 全覆盖 |
+| 路由评估初始集 | ✅ 50 条 | `evals/routing/cases.jsonl`，三类全覆盖，easy/medium/hard 混合 |
+| Persona 评估初始集 | ✅ 50 条 | `evals/persona/cases.jsonl`，easy/medium/hard 全覆盖 |
 | ACP 流式映射设计 | ✅ 已文档化 | 全部 `sessionUpdate` 类型映射、错误处理、Langfuse 关联 |
 | Persona Plan B 设计 | ✅ 已文档化 | 两段式流水线、降级策略、与 MaiBot 对比 |
 | 安全与信任模型 | ✅ 已文档化 | 信任分级、6 类威胁、密钥与数据分级、验收清单 |
 | ACP Bridge Wire Schema | ✅ 已文档化 | v1 冻结草案、错误映射、7 条验收用例 |
 | 开发路线图 | ✅ 已文档化 | Phase 0–6 状态、剩余工作、风险登记表 |
-| Memory 评估初始集 | ✅ 20 条 | `evals/memory/cases.jsonl`，覆盖全部 namespace 类型 |
+| Memory 评估初始集 | ✅ 50 条 | `evals/memory/cases.jsonl`，覆盖全部 namespace 类型，L0 ≥ 12 条 |
 | 评估 runner | ✅ 可用 | `scripts/run_evals.py`，routing/memory/persona 指标 + 阈值门禁 |
 | Persona Plan B 原型 | ✅ 纯函数骨架 | `persona_plan_b/`，Stage 1/2 prompt、解析、降级、契约校验、长度约束 |
 | eval-all 聚合入口 | ✅ 可用 | `python scripts/run_evals.py all --baseline`，缺失预测自动跳过 |
@@ -160,8 +160,8 @@ python scripts/run_evals.py all --baseline
 1. ACP notification 传输层接入（`StreamMapper` 已就绪，待接真实 dsh）
 2. AstrBot 路由意图分类器接入（`intent-router` 模型主路径，规则已就绪）
 3. Persona Plan B 接入 Persona Provider 契约层并跑 persona eval 全集
-4. 评估集扩容至各 50 条（routing/persona/memory）
-5. AIRI 接入设计文档（记忆读写、事件 payload、emotion 映射）
+4. AIRI 接入设计文档（记忆读写、事件 payload、emotion 映射）
+5. Persona Plan B 服务化（A2A 契约层）
 6. A2A `message/send` 最终规范发布后，冻结 bridge wire schema
 7. 部署文档暂缓，待代码骨架稳定后再写
 
