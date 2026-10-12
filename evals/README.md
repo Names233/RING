@@ -8,7 +8,7 @@
 |---|---|---:|---|
 | routing | ✅ 初始集 | 12 | 三类路由全覆盖，easy/medium 混合 |
 | persona | ✅ 初始集 | 20 | 含 judge prompt，easy/medium/hard 全覆盖 |
-| memory | 🟡 待扩充 | 0 | 需要真实 OpenViking URI 后补充 |
+| memory | ✅ 初始集 | 20 | 覆盖全部 namespace 类型，easy/medium/hard 全覆盖 |
 
 ## 格式
 

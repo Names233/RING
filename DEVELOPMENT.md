@@ -23,9 +23,10 @@ digital-genesis/
 │   └── PERSONA_PLAN_B_DESIGN.md
 ├── evals/
 │   ├── routing/cases.jsonl
-│   └── persona/
-│       ├── cases.jsonl
-│       └── judge_prompt.md
+│   ├── persona/
+│   │   ├── cases.jsonl
+│   │   └── judge_prompt.md
+│   └── memory/cases.jsonl
 ├── schemas/
 │   ├── persona-provider.schema.json
 │   └── persona-provider-response.schema.json
@@ -53,6 +54,7 @@ digital-genesis/
 | Persona 评估初始集 | ✅ 20 条 | `evals/persona/cases.jsonl`，easy/medium/hard 全覆盖 |
 | ACP 流式映射设计 | ✅ 已文档化 | 全部 `sessionUpdate` 类型映射、错误处理、Langfuse 关联 |
 | Persona Plan B 设计 | ✅ 已文档化 | 两段式流水线、降级策略、与 MaiBot 对比 |
+| Memory 评估初始集 | ✅ 20 条 | `evals/memory/cases.jsonl`，覆盖全部 namespace 类型 |
 | 本地部署 | ⏸ 暂缓 | 按当前目标，先完善开发文档与代码骨架 |
 
 ## ACP ↔ A2A Bridge
@@ -126,8 +128,7 @@ python scripts/migrate_mempalace_to_openviking.py input.jsonl --output ./viking-
 
 1. 接入真实 dsh ACP endpoint，补齐 `session/update` → A2A streaming event 映射
 2. Persona Plan B 原型实现（Stage 1 + Stage 2）
-3. Memory 评估集（待 OpenViking URI 样例后补充）
-4. ACP client 流式 notification 监听（按 `ACP_STREAMING_DESIGN.md` 实现）
+3. ACP client 流式 notification 监听（按 `ACP_STREAMING_DESIGN.md` 实现）
 5. A2A `message/send` 最终规范发布后，冻结 bridge wire schema
 6. 部署文档暂缓，待代码骨架稳定后再写
 
