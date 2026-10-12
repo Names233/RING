@@ -77,6 +77,7 @@ AstrBot (耳目) ── 平台接入 / 意图路由 / 消息收发
 - [开发状态与流程](./DEVELOPMENT.md)
 - [Persona Provider 契约](./docs/PERSONA_PROVIDER_CONTRACT.md)
 - [OpenViking 权限矩阵](./docs/OPENVIKING_PERMISSION_MATRIX.md)
+- [OpenViking 渐进上下文与记忆生命周期策略](./docs/OPENVIKING_CONTEXT_STRATEGY.md)
 - [AstrBot 路由插件设计](./docs/ASTRBOT_ROUTER_DESIGN.md)
 - [评估集设计](./docs/EVAL_DESIGN.md)
 - [ACP 流式事件映射设计](./docs/ACP_STREAMING_DESIGN.md)
