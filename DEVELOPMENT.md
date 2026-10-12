@@ -70,7 +70,7 @@ digital-genesis/
 | AIRI 表现层原型 | ✅ 纯函数骨架 | 8 种 emotion 映射、缺失资源降级至表情/idle、A2A 响应序列化、NATS 事件生成 |
 | Memory 评估初始集 | ✅ 50 条 | `evals/memory/cases.jsonl`，覆盖全部 namespace 类型，L0 ≥ 12 条 |
 | 评估 runner | ✅ 可用 | `scripts/run_evals.py`，routing/memory/persona 指标 + 阈值门禁 |
-| Persona Plan B 原型 | ✅ 纯函数骨架 | `persona_plan_b/`，Stage 1/2 prompt、解析、降级、契约校验、长度约束 |
+| Persona Plan B 原型与服务 | ✅ A2A 服务化 | `persona_plan_b/`，Stage 1/2 prompt、FastAPI A2A 端点、Schema 校验、契约不变量测试 |
 | eval-all 聚合入口 | ✅ 可用 | `python scripts/run_evals.py all --baseline`，缺失预测自动跳过 |
 | ACP 流式映射原型 | ✅ 纯函数骨架 | 9 种 `sessionUpdate` 映射、terminal 一次性语义、thought/usage 仅入 Langfuse、未知事件忽略 |
 | AstrBot 路由引擎原型 | ✅ 纯函数骨架 | 显式触发词、confidence < 0.6 回落 chat、模型不可用规则降级；eval baseline 复用同一实现 |
@@ -165,8 +165,8 @@ python scripts/run_evals.py all --baseline
 
 1. ACP notification 传输层接入（`StreamMapper` 已就绪，待接真实 dsh）
 2. AstrBot 路由意图分类器接入（`intent-router` 模型主路径，规则已就绪）
-3. Persona Plan B 接入 Persona Provider 契约层并跑 persona eval 全集
-4. Persona Plan B 服务化（A2A 契约层）
+3. 跨 Agent 事件总线 Payload Schema 冻结（NATS / Redis Streams）
+4. A2A `message/send` 最终规范发布后，冻结 bridge wire schema
 5. 跨 Agent 事件总线 Payload Schema 冻结（NATS / Redis Streams）
 6. A2A `message/send` 最终规范发布后，冻结 bridge wire schema
 7. 部署文档暂缓，待代码骨架稳定后再写

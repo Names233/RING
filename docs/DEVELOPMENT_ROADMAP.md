@@ -170,9 +170,12 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 - [x] CI 中运行规则检查，LLM judge 保持本地手动
 - [x] eval-all 聚合入口（`run_evals.py all --baseline`）
 
+### 已完成（全量离线评估）
+- [x] routing 50 / memory 50 / persona 50 全维度离线 baseline
+- [x] eval-all 一键聚合与全门禁校验（`python scripts/run_evals.py all --baseline --enforce-thresholds`）
+
 ### 剩余
-- [ ] 接真实系统后的阈值达标验证
-- [ ] 引入 judge score 离线样例（本地手动跑 LLM judge 后回填）
+- [ ] 引入真实系统在线 trace 回流与人工 judge 抽样复核
 
 ### 退出标准
 - 一条命令产出单维度评估报告（已实现：`scripts/run_evals.py`）。

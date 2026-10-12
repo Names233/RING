@@ -6,9 +6,9 @@
 
 | 维度 | 状态 | 样本数 | 说明 |
 |---|---|---:|---|
-| routing | ✅ 初始集 + runner | 50 | 三类路由全覆盖，easy/medium/hard 混合 |
-| persona | ✅ 初始集 + runner | 50 | 含 judge prompt，easy/medium/hard 全覆盖 |
-| memory | ✅ 初始集 + runner | 50 | 覆盖全部 namespace 类型，easy/medium/hard 全覆盖，L0 ≥ 12 条 |
+| routing | ✅ 完整集 + runner | 50 | 三类路由全覆盖，确定性基线 100% 达标 |
+| persona | ✅ 完整集 + runner | 50 | 50 条回归预测集，P1/P2/forbidden 零违规 |
+| memory | ✅ 完整集 + runner | 50 | 50 条回归预测集，hit@5 100%，L0 优先达标 |
 
 ## 阈值配置
 

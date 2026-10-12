@@ -137,14 +137,22 @@ def run_runner(arguments: list[str]) -> subprocess.CompletedProcess[str]:
     )
 
 
-def test_eval_all_runs_routing_baseline_and_skips_missing_predictions():
-    result = run_runner(["all", "--baseline"])
+def test_eval_all_runs_full_baseline_suite():
+    result = run_runner(["all", "--baseline", "--enforce-thresholds"])
     assert result.returncode == 0, result.stderr
     assert "# Digital Genesis eval report" in result.stdout
     assert "# Routing eval report" in result.stdout
     assert "# Memory eval report" in result.stdout
-    assert "skipped (no prediction file)" in result.stdout
     assert "# Persona eval report" in result.stdout
+    assert "all thresholds passed" in result.stdout
+
+
+def test_eval_all_skips_when_predictions_do_not_match(tmp_path: Path):
+    bad_pred = tmp_path / "bad.jsonl"
+    bad_pred.write_text('{"id": "mismatched-001"}\n', encoding="utf-8")
+    result = run_runner(["all", "--baseline", "--predictions", str(bad_pred)])
+    assert result.returncode == 0, result.stderr
+    assert "skipped (prediction ids do not match cases)" in result.stdout
 
 
 def test_eval_all_reads_sibling_prediction_files(tmp_path: Path):
