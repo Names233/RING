@@ -110,6 +110,20 @@ evals/
 - 失败样本自动打 `eval:failed` tag
 - 人格、记忆、路由三个维度分别建 Langfuse dataset
 
+## 6.1 Runner 与阈值
+
+实现：`scripts/run_evals.py`
+
+```bash
+python scripts/run_evals.py routing --baseline --enforce-thresholds
+```
+
+- 阈值唯一来源：`evals/thresholds.yaml`
+- 支持输出 Markdown / JSON 与 `--output` 报告文件
+- `--enforce-thresholds` 失败时非零退出
+- persona 支持 P1/P2 契约规则检查；LLM judge 分数可选，缺失时不阻塞
+- 使用方式详见 `evals/README.md`
+
 ## 7. 验收标准
 
 1. 三类测试集各有 ≥ 50 条样本（路由每类 ≥ 20 条）

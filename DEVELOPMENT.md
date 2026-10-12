@@ -14,13 +14,16 @@ digital-genesis/
 │   ├── litellm.yaml     # 模型网关配置模板
 │   ├── soul.example.yaml# 共享 Soul 配置模板
 │   └── validate.py      # 配置结构校验器
-├── docs/
+├── docs/              # 设计文档索引（见下方文档链接章节）
 │   ├── PERSONA_PROVIDER_CONTRACT.md
 │   ├── OPENVIKING_PERMISSION_MATRIX.md
 │   ├── ASTRBOT_ROUTER_DESIGN.md
 │   ├── EVAL_DESIGN.md
 │   ├── ACP_STREAMING_DESIGN.md
-│   └── PERSONA_PLAN_B_DESIGN.md
+│   ├── PERSONA_PLAN_B_DESIGN.md
+│   ├── SECURITY_TRUST_MODEL.md
+│   ├── ACP_BRIDGE_WIRE_SCHEMA.md
+│   └── DEVELOPMENT_ROADMAP.md
 ├── evals/
 │   ├── routing/cases.jsonl
 │   ├── persona/
@@ -32,7 +35,7 @@ digital-genesis/
 │   └── persona-provider-response.schema.json
 ├── scripts/
 │   └── migrate_mempalace_to_openviking.py
-└── tests/               # 仓库级测试（配置、迁移、契约）
+└── tests/               # 仓库级测试（配置、迁移、契约、文档索引）
 ```
 
 ## 工程状态（2026-10-12）
@@ -54,7 +57,11 @@ digital-genesis/
 | Persona 评估初始集 | ✅ 20 条 | `evals/persona/cases.jsonl`，easy/medium/hard 全覆盖 |
 | ACP 流式映射设计 | ✅ 已文档化 | 全部 `sessionUpdate` 类型映射、错误处理、Langfuse 关联 |
 | Persona Plan B 设计 | ✅ 已文档化 | 两段式流水线、降级策略、与 MaiBot 对比 |
+| 安全与信任模型 | ✅ 已文档化 | 信任分级、6 类威胁、密钥与数据分级、验收清单 |
+| ACP Bridge Wire Schema | ✅ 已文档化 | v1 冻结草案、错误映射、7 条验收用例 |
+| 开发路线图 | ✅ 已文档化 | Phase 0–6 状态、剩余工作、风险登记表 |
 | Memory 评估初始集 | ✅ 20 条 | `evals/memory/cases.jsonl`，覆盖全部 namespace 类型 |
+| 评估 runner | ✅ 可用 | `scripts/run_evals.py`，routing/memory/persona 指标 + 阈值门禁 |
 | 本地部署 | ⏸ 暂缓 | 按当前目标，先完善开发文档与代码骨架 |
 
 ## ACP ↔ A2A Bridge
@@ -117,6 +124,21 @@ python scripts/migrate_mempalace_to_openviking.py input.jsonl --output ./viking-
 - 类型不在 `preference/fact/episode/relationship` 中时归一化为 `fact`
 - 文件名由 `id` slug 化生成，重复执行幂等
 
+## 离线评估
+
+```bash
+# routing 基线（无需模型）
+python scripts/run_evals.py routing --baseline --enforce-thresholds
+
+# memory / persona 使用预测文件
+python scripts/run_evals.py memory --predictions predictions.jsonl --enforce-thresholds
+python scripts/run_evals.py persona --predictions responses.jsonl --enforce-thresholds
+```
+
+- 阈值集中在 `evals/thresholds.yaml`，与 `docs/EVAL_DESIGN.md` 对齐
+- `--enforce-thresholds` 失败时非零退出，可作为合并门禁
+- 输出支持 Markdown 与 JSON，`--output` 可指定报告文件
+
 ## CI
 
 `.github/workflows/ci.yml` 在根目录与 `acp-bridge/` 两个矩阵单元分别执行：
@@ -138,3 +160,15 @@ python scripts/migrate_mempalace_to_openviking.py input.jsonl --output ./viking-
 - 新增配置必须加入 `config/validate.py` 的结构校验
 - bridge 保持“薄”：业务逻辑放 AstrBot / dsh / OpenViking，协议翻译放 bridge
 
+
+## 设计文档索引
+
+- `docs/PERSONA_PROVIDER_CONTRACT.md`：Persona Provider 请求/响应契约与不变量
+- `docs/OPENVIKING_PERMISSION_MATRIX.md`：Agent × Namespace 权限矩阵
+- `docs/ASTRBOT_ROUTER_DESIGN.md`：三路由决策树与降级策略
+- `docs/EVAL_DESIGN.md`：人格 / 记忆 / 路由评估指标与阈值
+- `docs/ACP_STREAMING_DESIGN.md`：ACP sessionUpdate → A2A 流式事件映射
+- `docs/PERSONA_PLAN_B_DESIGN.md`：两段式自研 Persona 流水线
+- `docs/SECURITY_TRUST_MODEL.md`：信任分级、威胁模型与安全验收清单
+- `docs/ACP_BRIDGE_WIRE_SCHEMA.md`：Bridge v1 wire 冻结草案与错误映射
+- `docs/DEVELOPMENT_ROADMAP.md`：Phase 0–6 当前状态、剩余工作与风险登记表
