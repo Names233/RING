@@ -1,4 +1,5 @@
 """Digital Genesis Persona Provider Plan B prototype."""
+from .service import app, create_app
 from .core import (
     EMOTIONS,
     FALLBACK_EMOTION,
@@ -14,6 +15,8 @@ from .core import (
 )
 
 __all__ = [
+    "app",
+    "create_app",
     "EMOTIONS",
     "FALLBACK_EMOTION",
     "FALLBACK_TEXT",
