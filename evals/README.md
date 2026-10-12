@@ -93,6 +93,22 @@ python scripts/run_evals.py persona --predictions path/to/responses.jsonl
 python scripts/run_evals.py routing --baseline --enforce-thresholds
 ```
 
+### 聚合报告（eval-all）
+
+一条命令聚合 routing / memory / persona 三类报告：
+
+```bash
+python scripts/run_evals.py all --baseline
+```
+
+预测文件查找顺序：
+
+1. `--predictions` 显式指定
+2. `--output` 报告文件的同目录同名前缀（`report.json` → `report.memory.jsonl` / `report.persona.jsonl`）
+3. `evals/{kind}/predictions.jsonl`
+
+某个维度的预测 id 集合与 cases 不完全匹配时会跳过该维度，输出 `skipped`，避免误报。
+
 ### 报告输出
 
 - `--format json`：机器可读 JSON

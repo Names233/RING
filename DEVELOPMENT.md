@@ -24,6 +24,7 @@ digital-genesis/
 │   ├── SECURITY_TRUST_MODEL.md
 │   ├── ACP_BRIDGE_WIRE_SCHEMA.md
 │   └── DEVELOPMENT_ROADMAP.md
+├── persona_plan_b/     # Persona Plan B 纯函数原型（两段式流水线）
 ├── evals/
 │   ├── routing/cases.jsonl
 │   ├── persona/
@@ -62,6 +63,8 @@ digital-genesis/
 | 开发路线图 | ✅ 已文档化 | Phase 0–6 状态、剩余工作、风险登记表 |
 | Memory 评估初始集 | ✅ 20 条 | `evals/memory/cases.jsonl`，覆盖全部 namespace 类型 |
 | 评估 runner | ✅ 可用 | `scripts/run_evals.py`，routing/memory/persona 指标 + 阈值门禁 |
+| Persona Plan B 原型 | ✅ 纯函数骨架 | `persona_plan_b/`，Stage 1/2 prompt、解析、降级、契约校验、长度约束 |
+| eval-all 聚合入口 | ✅ 可用 | `python scripts/run_evals.py all --baseline`，缺失预测自动跳过 |
 | 本地部署 | ⏸ 暂缓 | 按当前目标，先完善开发文档与代码骨架 |
 
 ## ACP ↔ A2A Bridge
@@ -133,6 +136,9 @@ python scripts/run_evals.py routing --baseline --enforce-thresholds
 # memory / persona 使用预测文件
 python scripts/run_evals.py memory --predictions predictions.jsonl --enforce-thresholds
 python scripts/run_evals.py persona --predictions responses.jsonl --enforce-thresholds
+
+# 聚合三类报告（routing 用 baseline；缺失预测的维度自动跳过）
+python scripts/run_evals.py all --baseline
 ```
 
 - 阈值集中在 `evals/thresholds.yaml`，与 `docs/EVAL_DESIGN.md` 对齐
@@ -148,11 +154,13 @@ python scripts/run_evals.py persona --predictions responses.jsonl --enforce-thre
 
 ## 待办（按优先级）
 
-1. 接入真实 dsh ACP endpoint，补齐 `session/update` → A2A streaming event 映射
-2. Persona Plan B 原型实现（Stage 1 + Stage 2）
-3. ACP client 流式 notification 监听（按 `ACP_STREAMING_DESIGN.md` 实现）
-5. A2A `message/send` 最终规范发布后，冻结 bridge wire schema
-6. 部署文档暂缓，待代码骨架稳定后再写
+1. ACP client 流式 notification 监听（按 `ACP_STREAMING_DESIGN.md` 实现）
+2. AstrBot 纯函数路由引擎原型（关键词 + 正则降级路径）
+3. Persona Plan B 接入 Persona Provider 契约层并跑 persona eval 全集
+4. 评估集扩容至各 50 条（routing/persona/memory）
+5. AIRI 接入设计文档（记忆读写、事件 payload、emotion 映射）
+6. A2A `message/send` 最终规范发布后，冻结 bridge wire schema
+7. 部署文档暂缓，待代码骨架稳定后再写
 
 ## 贡献约定
 

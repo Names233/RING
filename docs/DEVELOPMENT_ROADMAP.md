@@ -20,9 +20,9 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 | Phase 1 | 🟢 文档先行 | 权限矩阵、迁移脚本、memory eval 已完成 |
 | Phase 2 | 🟢 文档先行 | ACP Bridge 参考实现 + 流式映射设计已完成 |
 | Phase 3 | 🟢 文档先行 | 路由设计与 routing eval 已完成 |
-| Phase 4 | 🟢 文档先行 | Persona 契约 + Plan B 设计 + eval 已完成 |
+| Phase 4 | 🟢 原型落地 | Persona 契约 + Plan B 设计 + 纯函数原型 + eval 已完成 |
 | Phase 5 | ⬜ 未开始 | AIRI 接入文档尚未细化 |
-| Phase 6 | 🟡 持续进行 | 三类评估集已建，runner 未实现 |
+| Phase 6 | 🟡 持续进行 | 三类评估集已建，runner 与 eval-all 聚合入口已实现 |
 
 ## 2. Phase 0：基础设施与文档基线
 
@@ -107,10 +107,14 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 - `docs/PERSONA_PLAN_B_DESIGN.md`：两段式流水线。
 - `evals/persona/cases.jsonl`：20 条 + judge prompt。
 
+### 已完成（代码骨架）
+- [x] Stage 1 JSON 解析 + 静默降级纯函数（`persona_plan_b/core.py`）
+- [x] Stage 2 prompt 组装 + 长度约束
+- [x] Plan B 输出契约校验（P1/P2 不变量测试覆盖）
+
 ### 剩余
-- [ ] Stage 1 JSON 解析 + 静默降级纯函数
-- [ ] Stage 2 prompt 组装
-- [ ] Plan B 输出过 Response Schema 校验
+- [ ] Plan B 接入 Persona Provider 契约层（A2A 服务化）
+- [ ] Plan B 跑 `evals/persona/cases.jsonl` 全集
 - [ ] persona eval ≥ 50 条
 
 ### 退出标准
@@ -136,15 +140,20 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 - `docs/EVAL_DESIGN.md`：三类指标与阈值。
 - routing 12 / persona 20 / memory 20 初始集。
 
+### 已完成（代码骨架）
+- [x] routing accuracy / macro-F1
+- [x] memory hit@1 / hit@5 / MRR
+- [x] persona 规则检查 + judge prompt 占位
+- [x] CI 中运行规则检查，LLM judge 保持本地手动
+- [x] eval-all 聚合入口（`run_evals.py all --baseline`）
+
 ### 剩余
-- [ ] routing accuracy / macro-F1
-- [ ] memory hit@1 / hit@5 / MRR
-- [ ] persona 规则检查 + judge prompt 占位
-- [ ] CI 中运行规则检查，LLM judge 保持本地手动
+- [ ] 评估集扩容至各 50 条
+- [ ] 接真实系统后的阈值达标验证
 
 ### 退出标准
 - 一条命令产出单维度评估报告（已实现：`scripts/run_evals.py`）。
-- 一条命令聚合三类报告（待实现：eval-all 入口）。
+- 一条命令聚合三类报告（已实现：`python scripts/run_evals.py all --baseline`）。
 - 阈值失败时非零退出码，可作合并门禁。
 
 ## 9. 风险登记表

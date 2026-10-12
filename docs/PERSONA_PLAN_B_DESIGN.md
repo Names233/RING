@@ -97,9 +97,9 @@ Plan B Persona Provider
 
 | 阶段 | 内容 |
 |---|---|
-| Step 1 | 实现 Stage 1 JSON 输出解析 + 失败降级 |
-| Step 2 | 实现 Stage 2 prompt 组装 + 长度约束 |
-| Step 3 | 接入 Persona Provider 契约层 |
+| Step 1 | ✅ 实现 Stage 1 JSON 输出解析 + 失败降级（`persona_plan_b/core.py`） |
+| Step 2 | ✅ 实现 Stage 2 prompt 组装 + 长度约束（`persona_plan_b/core.py`） |
+| Step 3 | 接入 Persona Provider 契约层（已具备 `validate_response()` 契约校验） |
 | Step 4 | 跑 `evals/persona/cases.jsonl` 全集 |
 | Step 5 | 与 MaiBot 输出对比，选优部署 |
 
