@@ -149,7 +149,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 - [x] A2A embodiment 请求/响应序列化与 NATS 事件生成
 
 **剩余**：
-- [ ] 事件 payload JSON Schema 冻结
+- [x] 事件 payload JSON Schema 冻结（`schemas/event-bus-events.schema.json`，7类事件）
 - [ ] AIRI MCP 凭证与 ACL 配置（暂缓部署）
 - [ ] 本地记忆迁移脚本适配 AIRI 目录结构
 

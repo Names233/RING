@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://digital-genesis.dev/schemas/event-bus-events.schema.json",
+  "title": "Digital Genesis Cross-Agent Event Bus Schema",
+  "description": "Standard NATS / Redis Streams event payloads for cross-agent orchestration",
+  "oneOf": [
+    {
+      "title": "persona.emotion.changed",
+      "type": "object",
+      "required": ["event", "trace_id", "session_id", "user_id", "from", "to"],
+      "additionalProperties": false,
+      "properties": {
+        "event": { "const": "persona.emotion.changed" },
+        "trace_id": { "type": "string" },
+        "session_id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "from": {
+          "type": "string",
+          "enum": ["neutral", "happy", "excited", "sad", "angry", "thinking", "shy", "sleepy"]
+        },
+        "to": {
+          "type": "string",
+          "enum": ["neutral", "happy", "excited", "sad", "angry", "thinking", "shy", "sleepy"]
+        },
+        "reason": { "type": "string" }
+      }
+    },
+    {
+      "title": "persona.response.completed",
+      "type": "object",
+      "required": ["event", "trace_id", "session_id", "user_id", "should_reply", "emotion"],
+      "additionalProperties": false,
+      "properties": {
+        "event": { "const": "persona.response.completed" },
+        "trace_id": { "type": "string" },
+        "session_id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "should_reply": { "type": "boolean" },
+        "emotion": {
+          "type": "string",
+          "enum": ["neutral", "happy", "excited", "sad", "angry", "thinking", "shy", "sleepy"]
+        },
+        "text": { "type": "string" }
+      }
+    },
+    {
+      "title": "embodiment.motion.requested",
+      "type": "object",
+      "required": ["event", "trace_id", "task_id", "emotion", "source"],
+      "additionalProperties": false,
+      "properties": {
+        "event": { "const": "embodiment.motion.requested" },
+        "trace_id": { "type": "string" },
+        "task_id": { "type": "string" },
+        "emotion": {
+          "type": "string",
+          "enum": ["neutral", "happy", "excited", "sad", "angry", "thinking", "shy", "sleepy"]
+        },
+        "requested_action": { "type": "string" },
+        "voice": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "text": { "type": "string" }
+          }
+        },
+        "source": { "type": "string" }
+      }
+    },
+    {
+      "title": "embodiment.motion.completed",
+      "type": "object",
+      "required": ["event", "trace_id", "task_id", "motion", "expression", "duration_ms"],
+      "additionalProperties": false,
+      "properties": {
+        "event": { "const": "embodiment.motion.completed" },
+        "trace_id": { "type": "string" },
+        "task_id": { "type": "string" },
+        "motion": { "type": "string" },
+        "expression": { "type": "string" },
+        "duration_ms": { "type": "integer", "minimum": 0 },
+        "voice_played": { "type": "boolean" }
+      }
+    },
+    {
+      "title": "embodiment.motion.failed",
+      "type": "object",
+      "required": ["event", "trace_id", "task_id", "emotion", "error", "degraded_to"],
+      "additionalProperties": false,
+      "properties": {
+        "event": { "const": "embodiment.motion.failed" },
+        "trace_id": { "type": "string" },
+        "task_id": { "type": "string" },
+        "requested_action": { "type": ["string", "null"] },
+        "emotion": {
+          "type": "string",
+          "enum": ["neutral", "happy", "excited", "sad", "angry", "thinking", "shy", "sleepy"]
+        },
+        "error": { "type": "string" },
+        "degraded_to": {
+          "type": "string",
+          "enum": ["expression_only", "idle", "none"]
+        }
+      }
+    },
+    {
+      "title": "deploy.completed",
+      "type": "object",
+      "required": ["event", "trace_id", "service", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "event": { "const": "deploy.completed" },
+        "trace_id": { "type": "string" },
+        "service": { "type": "string" },
+        "url": { "type": "string" },
+        "status": { "const": "success" },
+        "elapsed_seconds": { "type": "number" }
+      }
+    },
+    {
+      "title": "deploy.failed",
+      "type": "object",
+      "required": ["event", "trace_id", "service", "status", "error"],
+      "additionalProperties": false,
+      "properties": {
+        "event": { "const": "deploy.failed" },
+        "trace_id": { "type": "string" },
+        "service": { "type": "string" },
+        "status": { "const": "failed" },
+        "error": { "type": "string" }
+      }
+    }
+  ]
+}
