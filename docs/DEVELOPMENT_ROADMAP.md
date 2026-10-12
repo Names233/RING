@@ -17,7 +17,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 | 阶段 | 状态 | 说明 |
 |---|---|---|
 | Phase 0 | 🟡 进行中 | 文档、契约、评估集、测试已就绪；本地部署暂缓 |
-| Phase 1 | 🟢 文档先行 | 权限矩阵、迁移脚本、memory eval 已完成 |
+| Phase 1 | 🟢 规范定稿 | 权限矩阵、渐进召回策略、迁移脚本、memory eval (50条) 已完成 |
 | Phase 2 | 🟢 文档先行 | ACP Bridge 参考实现 + 流式映射设计已完成 |
 | Phase 3 | 🟢 原型落地 | 路由设计 + 纯函数路由原型 + routing eval 已完成 |
 | Phase 4 | 🟢 原型落地 | Persona 契约 + Plan B 设计 + 纯函数原型 + eval 已完成 |
@@ -56,9 +56,9 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 - `evals/memory/cases.jsonl`：50 条，覆盖全部 namespace，L0 ≥ 12 条。
 
 ### 剩余
-- [ ] OpenViking 接入示例（Agent Plugins 1.0 / MCP 配置片段）
-- [ ] L0/L1/L2 摘要生成策略文档
-- [ ] 记忆生命周期（置信度衰减、删除审核）细化
+- [x] OpenViking 接入示例（Agent Plugins 1.0 / MCP 配置片段，`docs/OPENVIKING_CONTEXT_STRATEGY.md` 第 5 节）
+- [x] L0/L1/L2 摘要生成策略文档（第 1/3 节）
+- [x] 记忆生命周期（置信度衰减、删除审核）细化（第 4 节）
 - [ ] 真实部署联调（暂缓）
 
 ### 退出标准

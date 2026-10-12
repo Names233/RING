@@ -17,6 +17,7 @@ digital-genesis/
 ├── docs/              # 设计文档索引（见下方文档链接章节）
 │   ├── PERSONA_PROVIDER_CONTRACT.md
 │   ├── OPENVIKING_PERMISSION_MATRIX.md
+│   ├── OPENVIKING_CONTEXT_STRATEGY.md
 │   ├── ASTRBOT_ROUTER_DESIGN.md
 │   ├── EVAL_DESIGN.md
 │   ├── ACP_STREAMING_DESIGN.md
@@ -55,6 +56,7 @@ digital-genesis/
 | CI | ✅ 已配置 | GitHub Actions，矩阵运行根目录与 acp-bridge 测试 |
 | Persona Provider 契约 | ✅ 已冻结 | 请求/响应 JSON Schema + 示例 + 不变量 |
 | OpenViking 权限矩阵 | ✅ 已文档化 | 写隔离、双写者、Bridge 只读、删除审核 |
+| OpenViking 上下文与生命周期策略 | ✅ 已文档化 | L0/L1/L2 预算、渐进召回流水线、置信度时间衰减、Agent Plugins 1.0 配置 |
 | AstrBot 路由设计 | ✅ 已文档化 | 三路由决策树、意图分类器 I/O、五类故障降级 |
 | 评估集设计 | ✅ 已文档化 | 人格/记忆/路由三类指标与阈值 |
 | 路由评估初始集 | ✅ 50 条 | `evals/routing/cases.jsonl`，三类全覆盖，easy/medium/hard 混合 |
@@ -165,7 +167,7 @@ python scripts/run_evals.py all --baseline
 2. AstrBot 路由意图分类器接入（`intent-router` 模型主路径，规则已就绪）
 3. Persona Plan B 接入 Persona Provider 契约层并跑 persona eval 全集
 4. Persona Plan B 服务化（A2A 契约层）
-5. OpenViking 记忆生命周期与 L0/L1/L2 摘要策略细化
+5. 跨 Agent 事件总线 Payload Schema 冻结（NATS / Redis Streams）
 6. A2A `message/send` 最终规范发布后，冻结 bridge wire schema
 7. 部署文档暂缓，待代码骨架稳定后再写
 
@@ -180,6 +182,7 @@ python scripts/run_evals.py all --baseline
 
 - `docs/PERSONA_PROVIDER_CONTRACT.md`：Persona Provider 请求/响应契约与不变量
 - `docs/OPENVIKING_PERMISSION_MATRIX.md`：Agent × Namespace 权限矩阵
+- `docs/OPENVIKING_CONTEXT_STRATEGY.md`：L0/L1/L2 渐进召回与生命周期衰减策略
 - `docs/ASTRBOT_ROUTER_DESIGN.md`：三路由决策树与降级策略
 - `docs/EVAL_DESIGN.md`：人格 / 记忆 / 路由评估指标与阈值
 - `docs/ACP_STREAMING_DESIGN.md`：ACP sessionUpdate → A2A 流式事件映射

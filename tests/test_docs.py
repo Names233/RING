@@ -9,6 +9,7 @@ EXPECTED_DOCUMENTS = [
     "DEVELOPMENT.md",
     "docs/PERSONA_PROVIDER_CONTRACT.md",
     "docs/OPENVIKING_PERMISSION_MATRIX.md",
+    "docs/OPENVIKING_CONTEXT_STRATEGY.md",
     "docs/ASTRBOT_ROUTER_DESIGN.md",
     "docs/EVAL_DESIGN.md",
     "docs/ACP_STREAMING_DESIGN.md",
@@ -26,6 +27,7 @@ INDEX_FILES = {
         "./DEVELOPMENT.md",
         "./docs/PERSONA_PROVIDER_CONTRACT.md",
         "./docs/OPENVIKING_PERMISSION_MATRIX.md",
+        "./docs/OPENVIKING_CONTEXT_STRATEGY.md",
         "./docs/ASTRBOT_ROUTER_DESIGN.md",
         "./docs/EVAL_DESIGN.md",
         "./docs/ACP_STREAMING_DESIGN.md",
@@ -40,6 +42,8 @@ INDEX_FILES = {
         "DEVELOPMENT.md",
         "docs/PERSONA_PROVIDER_CONTRACT.md",
         "docs/OPENVIKING_PERMISSION_MATRIX.md",
+        "docs/OPENVIKING_CONTEXT_STRATEGY.md",
+    "docs/OPENVIKING_CONTEXT_STRATEGY.md",
         "docs/ASTRBOT_ROUTER_DESIGN.md",
         "docs/EVAL_DESIGN.md",
         "docs/ACP_STREAMING_DESIGN.md",
@@ -159,3 +163,18 @@ def test_airi_design_covers_required_sections() -> None:
     airi_doc = (REPO_ROOT / "docs/AIRI_EMBODIMENT_DESIGN.md").read_text(encoding="utf-8")
     for section in AIRI_SECTIONS:
         assert section in airi_doc, f"AIRI document missing section: {section}"
+
+CONTEXT_STRATEGY_SECTIONS = [
+    "L0 / L1 / L2 分层定义与 Token 预算",
+    "渐进召回状态转移流水线",
+    "L0/L1 摘要生成与维护机制",
+    "记忆生命周期与置信度衰减",
+    "OpenViking 接入配置与 Agent Plugins 1.0 片段",
+    "验收与合规清单",
+]
+
+
+def test_context_strategy_covers_required_sections() -> None:
+    doc = (REPO_ROOT / "docs/OPENVIKING_CONTEXT_STRATEGY.md").read_text(encoding="utf-8")
+    for section in CONTEXT_STRATEGY_SECTIONS:
+        assert section in doc, f"Context strategy document missing section: {section}"
