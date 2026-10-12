@@ -37,7 +37,8 @@ digital-genesis/
 │   └── memory/cases.jsonl
 ├── schemas/
 │   ├── persona-provider.schema.json
-│   └── persona-provider-response.schema.json
+│   ├── persona-provider-response.schema.json
+│   └── event-bus-events.schema.json
 ├── scripts/
 │   └── migrate_mempalace_to_openviking.py
 └── tests/               # 仓库级测试（配置、迁移、契约、文档索引）
@@ -55,6 +56,7 @@ digital-genesis/
 | MemPalace → OpenViking 迁移脚本 | ✅ 可用 | 支持 JSON/JSONL，输出 Markdown + front matter |
 | CI | ✅ 已配置 | GitHub Actions，矩阵运行根目录与 acp-bridge 测试 |
 | Persona Provider 契约 | ✅ 已冻结 | 请求/响应 JSON Schema + 示例 + 不变量 |
+| 跨 Agent 事件总线 Schema | ✅ 已冻结 | `schemas/event-bus-events.schema.json`，覆盖 7 类核心协同事件 |
 | OpenViking 权限矩阵 | ✅ 已文档化 | 写隔离、双写者、Bridge 只读、删除审核 |
 | OpenViking 上下文与生命周期策略 | ✅ 已文档化 | L0/L1/L2 预算、渐进召回流水线、置信度时间衰减、Agent Plugins 1.0 配置 |
 | AstrBot 路由设计 | ✅ 已文档化 | 三路由决策树、意图分类器 I/O、五类故障降级 |
@@ -165,7 +167,6 @@ python scripts/run_evals.py all --baseline
 
 1. ACP notification 传输层接入（`StreamMapper` 已就绪，待接真实 dsh）
 2. AstrBot 路由意图分类器接入（`intent-router` 模型主路径，规则已就绪）
-3. 跨 Agent 事件总线 Payload Schema 冻结（NATS / Redis Streams）
 4. A2A `message/send` 最终规范发布后，冻结 bridge wire schema
 5. 跨 Agent 事件总线 Payload Schema 冻结（NATS / Redis Streams）
 6. A2A `message/send` 最终规范发布后，冻结 bridge wire schema
