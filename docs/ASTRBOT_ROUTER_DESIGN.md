@@ -102,21 +102,21 @@ AstrBot 瘦身后只承担“感知与投递”职责，其中最关键的决策
 | confidence < 0.6 回落 chat | ✅ | `classify()`，阈值可配置 |
 | 模型不可用降级 | ✅ | `model_route=None` 时走规则并标记 `degraded=True` |
 | 下游映射 | ✅ | `decide_downstream()`：persona / bridge / AIRI |
-| eval baseline 复用 | ✅ | `scripts/run_evals.py` 调用同一 `rule_classify`，routing 12/12 通过 |
+| eval baseline 复用 | ✅（口径受限） | `scripts/run_evals.py` 调用同一 `rule_classify`，routing 50/50 回归通过；标签与规则同源，只证明回归一致，不代表真实准确率 |
 | 意图分类器主路径 | ⏳ | 待接 `intent-router` 模型（LiteLLM） |
 | AstrBot 插件接入 | ⏳ | 待真实 AstrBot 环境 |
 
 ## 8. 验收标准
 
 1. 路由准确率 eval 集 ≥ 90%（`intent-router` 模型）
-2. 三条路由每条至少有 20 条标注样本
+2. 三条路由每条至少有 20 条标注样本（当前 tech 43 / chat 4 / embodiment 3，chat 与 embodiment 未达标）
 3. 故障降级路径全部有测试：模型挂、Persona 挂、bridge 挂、AIRI 挂、OpenViking 挂
 4. Langfuse 能按 `trace_id` 串联：入站消息 → 意图分类 → 路由 → 下游调用
 5. 路由插件本身无持久化状态；任何状态写入 OpenViking
 
 ## 9. 路由测试集初始样本
 
-以下样本作为 `evals/routing/cases.jsonl` 的初始集，可直接复制使用：
+以下 12 条是初始样本（现已扩充为 50 条，见 `evals/routing/cases.jsonl`；扩充后仍不均衡，需继续补 chat 与 embodiment）：
 
 ```jsonl
 {"id":"route-001","text":"帮我部署一下服务","expected_route":"tech","difficulty":"easy"}

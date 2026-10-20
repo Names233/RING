@@ -43,7 +43,6 @@ INDEX_FILES = {
         "docs/PERSONA_PROVIDER_CONTRACT.md",
         "docs/OPENVIKING_PERMISSION_MATRIX.md",
         "docs/OPENVIKING_CONTEXT_STRATEGY.md",
-    "docs/OPENVIKING_CONTEXT_STRATEGY.md",
         "docs/ASTRBOT_ROUTER_DESIGN.md",
         "docs/EVAL_DESIGN.md",
         "docs/ACP_STREAMING_DESIGN.md",

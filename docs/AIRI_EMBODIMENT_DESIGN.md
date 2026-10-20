@@ -239,6 +239,8 @@ mcp_servers:
         - "viking://memories/agents/airi/"
 ```
 
+> 上述 `viking://memories/...`、`viking://skills/` 是逻辑命名空间；OpenViking 物理布局映射见 [`OPENVIKING_PERMISSION_MATRIX.md`](./OPENVIKING_PERMISSION_MATRIX.md) §1.1。
+
 ## 9. 失败降级矩阵
 
 | 故障 | 行为 | 对用户影响 |

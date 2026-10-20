@@ -1,6 +1,6 @@
 # Digital Genesis 安全与信任模型
 
-> 版本：v1（2026-10-12）
+> 版本：v1（2026-10-20 核查实现）
 > 范围：AstrBot × MaiBot × AIRI × dsh × OpenViking 五件套 + ACP Bridge、模型网关、事件总线。
 > 本文是 `ARCHITECTURE.md` 第七章的扩展版；冲突时以 `ARCHITECTURE.md` 为权威。
 
@@ -29,6 +29,8 @@
 | dsh | ❌（经 LiteLLM） | ✅ 沙箱内 | ✅ `memories/agents/dsh/` | 白名单出口 | 不挂 `/var/run/docker.sock` |
 | ACP Bridge | ❌ | ❌ | ❌（只读） | 仅 AstrBot↔dsh | 百行级薄层，无业务逻辑 |
 | OpenViking | ❌ | 文件系统（数据目录） | — | 仅内网 MCP | 按命名空间隔离写权限 |
+
+> 表中的 `memories/...` 是逻辑命名空间；与 OpenViking 物理布局的映射见 [`OPENVIKING_PERMISSION_MATRIX.md`](./OPENVIKING_PERMISSION_MATRIX.md) §1.1。
 | LiteLLM | ✅ 全部模型 Key | ❌ | ❌ | 模型供应商 | 唯一密钥保管点 |
 
 ## 3. 威胁模型
@@ -43,6 +45,8 @@
 3. **命令白名单**：破坏性命令（`rm -rf`、`dd`、`mkfs`、`curl | sh`）进入人工审核队列而非直接执行。
 4. **输出回读隔离**：dsh 返回的技术文本作为引用块传给 MaiBot，不直接进入其 system prompt。
 5. **dsh 无 IM 出口**：即使被诱导，也无法直接向群内发消息，必须经 AstrBot 回传。
+
+> **实现差距（2026-10-20）**：第 1 条尚未落地。`persona_plan_b/core.py:92-118` 的 `build_trigger_prompt` 把原始用户文本直接拼进触发判断 prompt，未做分隔或指令隔离；`parse_trigger_output` 用贪婪正则提取 JSON。触发阶段目前不具备抵御 prompt injection 的结构性防线。
 
 ### T2：记忆投毒（Memory Poisoning）
 

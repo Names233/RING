@@ -86,7 +86,7 @@
 |---|---|
 | Step 1 | 🟡 notification 解析已实现（`parse_notification`）；传输层监听待接真实 dsh |
 | Step 2 | 🟡 纯函数映射已实现（`StreamMapper`）；A2A emitter 待传输层接入 |
-| Step 3 | ✅ 单元测试：每种 `sessionUpdate` 类型至少一个用例 |
+| Step 3 | 🟡 纯函数单元测试：每种 `sessionUpdate` 类型至少一个用例（`StreamMapper` 有 21 个测试，但尚未接入 `main.py`） |
 | Step 4 | 集成真实 dsh，验证事件顺序与 terminal 语义（含 `session/cancel` 断连路径） |
 | Step 5 | Langfuse span 接入 |
 
@@ -97,3 +97,6 @@
 3. terminal 语义测试：`completed` / `failed` 后不再发送任何事件
 4. `agent_thought_chunk` 不出现在 A2A 输出中
 5. 客户端断开时调用 `session/cancel`
+
+
+> 实现状态（2026-10-20）：Step 1–3 的代码均为纯函数/独立模块，bridge 的同步主路径未监听 `session/update`；验收第 5 条的 `session/cancel` 断连路径尚未实现。

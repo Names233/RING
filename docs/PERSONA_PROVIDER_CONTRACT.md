@@ -53,6 +53,8 @@ Persona Provider 是 Digital Genesis 中可替换的“灵魂层”。MaiBot 是
 | `fragments[].uri` | 是 | 必须是 `viking://` URI |
 | `fragments[].level` | 是 | OpenViking L0/L1/L2 渐进上下文层级 |
 
+> 示例 URI 为逻辑命名空间；OpenViking 物理布局映射见 [`OPENVIKING_PERMISSION_MATRIX.md`](./OPENVIKING_PERMISSION_MATRIX.md) §1.1。
+
 ## 3. 响应结构
 
 ```json

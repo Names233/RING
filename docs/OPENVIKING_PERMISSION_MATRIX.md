@@ -12,6 +12,20 @@ OpenViking 是所有 Agent 的记忆与知识总线。权限规则：**写隔离
 | `viking://memories/shared/` | 跨 Agent 共享上下文 | 管理员维护 |
 | `viking://skills/` | 沉淀的工作流与经验 | dsh 写，其他读 |
 
+### 1.1 逻辑命名空间 ↔ OpenViking 物理布局
+
+上表与各设计文档中的 `viking://memories/...`、`viking://skills/` 是**逻辑命名空间**，用于表达归属与 ACL 意图；OpenViking 实际可写根为 `viking://resources/`、`viking://user/{user_id}/`、`viking://agent/`，技能安装目录为 `viking://agent/skills/`（账号共享）或 `viking://~/skills/`（个人）。映射建议如下，落地 Phase 1 时需逐条验证：
+
+| 逻辑路径 | 物理布局（建议） | 说明 |
+|---|---|---|
+| `viking://resources/` | `viking://resources/` 或 `viking://~/resources/` | 全局共享 / 个人资源；默认只读 |
+| `viking://memories/users/{user}/` | `viking://user/{user_id}/memories/` | 用户画像；`skills/`、`peers/`、`privacy/`、`sessions/` 为保留子树，勿写入 |
+| `viking://memories/agents/{agent}/` | `viking://agent/memories/{agent}/` | Agent 经历，写隔离 |
+| `viking://memories/shared/` | `viking://resources/shared/` | 账号共享，写入需 manage 权限 |
+| `viking://skills/` | `viking://agent/skills/` 或 `viking://~/skills/` | 技能包；应通过 skill 安装流程写入，而非普通文件写 |
+
+> 当前仓库尚未实现该映射，也没有 ACL 配置文件；本文与代码中的逻辑路径不能直接用于 OpenViking 请求。
+
 ## 2. Agent × Namespace × 权限
 
 读（R）/ 写（W）/ 无权限（-）

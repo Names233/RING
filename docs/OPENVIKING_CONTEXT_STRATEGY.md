@@ -1,10 +1,12 @@
 # OpenViking 渐进上下文与记忆生命周期策略
 
-> 文档版本：v1（2026-10-12）  
+> 文档版本：v1（2026-10-20 核查）  
 > 归属：Phase 1（记忆层）核心规范  
 > 关联文档：[`ARCHITECTURE.md`](../ARCHITECTURE.md), [`OPENVIKING_PERMISSION_MATRIX.md`](./OPENVIKING_PERMISSION_MATRIX.md)
 
 OpenViking 作为 Digital Genesis 的统一上下文总线，承载全局资源（`resources/`）、用户画像（`users/`）、各 Agent 经历（`agents/`）、共享上下文（`shared/`）与工程技能（`skills/`）。
+
+> 命名空间说明：上述 `resources/`、`users/`、`agents/`、`shared/`、`skills/` 是逻辑视图；OpenViking 物理根为 `resources/`、`user/{id}/`、`agent/`，映射见 [`OPENVIKING_PERMISSION_MATRIX.md`](./OPENVIKING_PERMISSION_MATRIX.md) §1.1。L0/L1/L2 是本项目的 front matter 约定，不是 OpenViking 原生分层。
 
 为了杜绝大模型在长期交互下的 **Token 爆炸** 与 **记忆幻觉**，系统严格实施 **L0 / L1 / L2 渐进式召回（Progressive Context Recall）** 与 **记忆生命周期置信度衰减** 机制。
 
@@ -163,6 +165,8 @@ tools_exported:
 ## 6. 验收与合规清单
 
 1. **测试集达标**：`evals/memory/cases.jsonl` 中的 50 条测试用例全部符合 L0 优先与命名空间匹配原则。
+
+   > 口径：当前 `evals/memory/predictions.jsonl` 为构造 fixture（正确 URI 固定排第一），上述结论只说明用例与 runner 可运行，不代表真实召回质量。
 2. **读权限校验**：所有 Agent 在初筛时未显式指定级别时，默认仅收到 L0 摘要。
 3. **元数据完整**：所有沉淀记忆必须携带 `confidence`、`created_at`、`updated_at` 字段。
 4. **越权阻断**：禁止任何 Agent 在未经审批的情况下直接物理删除记忆。

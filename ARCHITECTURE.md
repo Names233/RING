@@ -44,12 +44,12 @@ AstrBot ↔ dsh（双手执行）     →   ACP   （Agent Client Protocol，经
 
 ## 一、五个项目各自的能力（v3 版）
 
-> Star / 版本为 2026-10-12 实时核查值。
+> Star / 版本为 2026-10-20 核查值；Star 取上游仓库约数。
 
 ### 1.1 AstrBot — 感知与投递层（Perception & Delivery）
 
 - 仓库：https://github.com/AstrBotDevs/AstrBot
-- Star：41.4k+ | Python 3.10+ | License: AGPL-3.0
+- Star：42.4k+ | Python 3.10+ | License: AGPL-3.0
 
 **v3 关键变化：从"全栈大脑"瘦身为"感知与投递层"**
 
@@ -65,7 +65,7 @@ AstrBot ↔ dsh（双手执行）     →   ACP   （Agent Client Protocol，经
 ### 1.2 MaiBot — 灵魂层（Persona Provider，可替换）
 
 - 仓库：https://github.com/Mai-with-u/MaiBot
-- Star：6.1k | Python 3.10+ | License: GPL-3.0 | 版本：v1.3.2
+- Star：6.3k | Python 3.10+ | License: GPL-3.0 | 版本：v1.3.11
 
 **v3 关键变化：抽象为可替换的 Persona Provider**
 
@@ -78,7 +78,7 @@ AstrBot ↔ dsh（双手执行）     →   ACP   （Agent Client Protocol，经
    输入: { 消息, 群氛围上下文, 召回的用户画像/记忆 }
    输出: { 是否回复: bool, 回复文本: string, 情绪标签: string }
    ```
-2. **存储下沉**：表达学习成果、用户画像全部写入 OpenViking（`viking://memories/users/`），MaiBot 只保留"判断与生成"逻辑。换掉 MaiBot 不丢失学到的东西。
+2. **存储下沉**：表达学习成果、用户画像全部写入 OpenViking（逻辑路径 `viking://memories/users/`；物理布局映射见 [权限矩阵](./docs/OPENVIKING_PERMISSION_MATRIX.md) §1.1），MaiBot 只保留"判断与生成"逻辑。换掉 MaiBot 不丢失学到的东西。
 3. **降级方案（Plan B）**：若 MaiBot 停更，用"小模型触发判断 + 主模型人格生成"两段式自研替代，触发判断可用 1B 级本地模型。
 
 MaiBot 当前仍不可替代的能力：**群聊动态触发**（判断"这句话该不该接、什么时候接"），这是"像人"和"像客服"的分水岭。
@@ -86,14 +86,14 @@ MaiBot 当前仍不可替代的能力：**群聊动态触发**（判断"这句�
 ### 1.3 AIRI — 化身层（Embodiment）✅ 保留不动
 
 - 仓库：https://github.com/moeru-ai/airi
-- Star：50.0k+ | TypeScript | License: MIT | 版本：v0.12.0-beta.5
+- Star：50.5k+ | TypeScript | License: MIT | 版本：v0.12.0-beta.5
 
 生态位独特（Live2D/VRM + 本地 TTS + MAGIC 动作 + 游戏 Agent 一体），市面上无同质替代者。唯一变化：记忆读写切到 OpenViking 的 `viking://` 命名空间，不留本地私有状态孤岛。
 
 ### 1.4 dsh — 双手层（Hands）🆕 替换 Hermes
 
 - 仓库：https://github.com/deepseek-ai/deepseek-harness
-- Star：247.8k | TypeScript (Cordis 微内核) | License: MIT | 文档：https://deepseek-harness.github.io/deepseek-harness/
+- Star：255.6k | TypeScript (Cordis 微内核) | License: MIT | 文档：https://deepseek-harness.github.io/deepseek-harness/
 
 **选型理由：**
 
@@ -119,7 +119,7 @@ MaiBot 当前仍不可替代的能力：**群聊动态触发**（判断"这句�
 ### 1.5 OpenViking — 记忆层（Memory & Context Bus）🆕 替换 MemPalace
 
 - 仓库：https://github.com/volcengine/OpenViking
-- Star：39.7k | Python + Rust (ragfs) | License: AGPL-3.0
+- Star：40.4k | Python + Rust (ragfs) | License: AGPL-3.0
 
 **核心范式跃迁：从"黑盒向量库"到"透明虚拟文件系统"**
 
@@ -145,6 +145,8 @@ viking://
     ├── deploy-fastapi/
     └── debug-docker/
 ```
+
+> 说明：上面的 `viking://` 目录是**逻辑设计视图**，用于表达命名空间与权限边界；OpenViking 当前实际的物理可写范围是 `viking://resources/`、`viking://user/{id}/`、`viking://agent/`（详见 [权限矩阵](./docs/OPENVIKING_PERMISSION_MATRIX.md) §1.1）。两者不能直接等同，部署前必须先完成映射。
 
 **L0/L1/L2 渐进式上下文（解决 Token 爆炸）：**
 
@@ -362,6 +364,7 @@ memory:               # → OpenViking
         astrbot: "viking://memories/agents/astrbot/"
       shared: "viking://memories/shared/"
     skills: "viking://skills/"
+  # 注意：以上 memories/*、skills/ 为逻辑命名空间；物理布局映射见 docs/OPENVIKING_PERMISSION_MATRIX.md §1.1
 
 model_gateway:        # → LiteLLM/NewAPI
   base_url: "http://localhost:4000/v1"
@@ -509,7 +512,7 @@ volumes:
 ## 七、安全性（v3 补充）
 
 1. **dsh 执行风险**：同原 Hermes 风险——不挂载 `/var/run/docker.sock`，命令白名单，最小权限运行。
-2. **OpenViking 权限隔离**：`viking://` 命名空间按 Agent 隔离写权限，读权限可按需开放。`memories/users/` 仅 MaiBot/AstrBot 可写，其他 Agent 只读。
+2. **OpenViking 权限隔离**：`viking://` 命名空间按 Agent 隔离写权限，读权限可按需开放。`memories/users/` 仅 MaiBot/AstrBot 可写，其他 Agent 只读。注意 `memories/...` 是逻辑路径，物理布局映射见 [权限矩阵](./docs/OPENVIKING_PERMISSION_MATRIX.md) §1.1。
 3. **模型网关统一鉴权**：所有 API Key 集中在 LiteLLM 管理，各服务不持有原始 Key。
 4. **事件总线 ACL**：NATS subject 级权限控制，防止 Agent 越权订阅/发布。
 

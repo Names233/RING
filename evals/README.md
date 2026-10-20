@@ -6,9 +6,21 @@
 
 | 维度 | 状态 | 样本数 | 说明 |
 |---|---|---:|---|
-| routing | ✅ 完整集 + runner | 50 | 三类路由全覆盖，确定性基线 100% 达标 |
-| persona | ✅ 完整集 + runner | 50 | 50 条回归预测集，P1/P2/forbidden 零违规 |
-| memory | ✅ 完整集 + runner | 50 | 50 条回归预测集，hit@5 100%，L0 优先达标 |
+| routing | 🟡 完整集 + runner（标签同源） | 50 | tech 43 / chat 4 / embodiment 3；baseline 用同一 `rule_classify` 生成标签，仅证明回归一致 |
+| persona | 🟡 回归 fixture（非真实模型） | 50 | predictions 为手写响应，P1/P2/forbidden 规则可执行；judge_score 统一为 4.5，不是真实评分 |
+| memory | 🟡 构造 fixture | 50 | 正确 URI 被人工放在第 1 位，hit@5 100% 是构造结果，不是真实召回 |
+
+## 预测文件口径（重要）
+
+仓库内的 `evals/*/predictions.jsonl` 是**构造的回归 fixture**，不是真实模型调用结果：
+
+| 维度 | 当前预测来源 | 能证明什么 | 不能证明什么 |
+|---|---|---|---|
+| routing | 与 labels 同一套 `rule_classify` 生成 | 规则改动未破坏原有回归 | 真实意图分类准确率 |
+| memory | 按 expected URI 人工构造，正确项恒排第一 | runner 指标计算正确 | 真实召回质量 |
+| persona | 手写响应 + 统一 `judge_score: 4.5` | P1/P2/forbidden 规则可执行 | 真实人格一致性与模型评分 |
+
+接入真实系统后，应改用模型输出重跑，并区分 fixture 与 model 两种口径。
 
 ## 阈值配置
 
@@ -66,6 +78,8 @@ python scripts/run_evals.py memory --predictions path/to/predictions.jsonl
 ```
 
 输出 hit@1、hit@5、MRR、level_match 与 badcase。
+
+> 示例中的 `viking://memories/...` 是逻辑命名空间；与 OpenViking 物理布局的映射见 [`docs/OPENVIKING_PERMISSION_MATRIX.md`](../docs/OPENVIKING_PERMISSION_MATRIX.md) §1.1。
 
 ### Persona 规则检查
 

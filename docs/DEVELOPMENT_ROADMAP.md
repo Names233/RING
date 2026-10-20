@@ -1,6 +1,6 @@
 # Digital Genesis 开发路线图
 
-> 版本：v1（2026-10-12）
+> 版本：v1（2026-10-20 更新）
 > 当前策略：**先文档与代码骨架，后部署**。本文是 `ARCHITECTURE.md` 第八章在工程视角的细化与当前状态追踪。
 
 ## 1. 当前位置
@@ -12,17 +12,17 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
    └ 当前处于 Phase 0 文档与骨架阶段
 ```
 
-截至 2026-10-12：
+截至 2026-10-20：
 
 | 阶段 | 状态 | 说明 |
 |---|---|---|
-| Phase 0 | 🟡 进行中 | 文档、契约、评估集、测试已就绪；本地部署暂缓 |
+| Phase 0 | 🟡 进行中 | 文档、契约、评估集、测试已就绪；本地部署暂缓；GitHub CI 近 9 次运行失败（本地等价命令全绿） |
 | Phase 1 | 🟢 规范定稿 | 权限矩阵、渐进召回策略、迁移脚本、memory eval (50条) 已完成 |
 | Phase 2 | 🟢 文档先行 | ACP Bridge 参考实现 + 流式映射设计已完成 |
 | Phase 3 | 🟢 原型落地 | 路由设计 + 纯函数路由原型 + routing eval 已完成 |
 | Phase 4 | 🟢 原型落地 | Persona 契约 + Plan B 设计 + 纯函数原型 + eval 已完成 |
 | Phase 5 | 🟢 原型落地 | AIRI 接入设计文档 + 表现层纯函数原型已完成 |
-| Phase 6 | 🟡 持续进行 | 三类评估集已建，runner 与 eval-all 聚合入口已实现 |
+| Phase 6 | 🟡 持续进行 | 三类评估集已建，runner 与 eval-all 聚合可用；当前 predictions 为构造 fixture，routing 标签与规则同源 |
 
 ## 2. Phase 0：基础设施与文档基线
 
@@ -44,7 +44,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 ### 退出标准
 
 1. 所有设计文档进入 README 索引且链接可达。
-2. 根目录 + acp-bridge 测试全绿。
+2. 根目录 + acp-bridge 测试全绿（本地已绿；GitHub CI 尚未恢复，见 `DEVELOPMENT.md#ci`）。
 3. 所有新增配置字段有校验。
 4. 安全模型覆盖 6 类威胁与验收清单。
 
@@ -72,7 +72,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 - ACP Bridge 同步参考实现（FastAPI + JSON-RPC client）。
 - `docs/ACP_STREAMING_DESIGN.md`：9 种 sessionUpdate 映射。
 - `docs/ACP_BRIDGE_WIRE_SCHEMA.md`：v1 wire 冻结草案。
-- 7 个 bridge 测试。
+- 29 个 bridge 测试（pytest collect：test_acp_client 5 + test_api 3 + test_streaming 21）。
 - `streaming.py`：9 种 `sessionUpdate` 纯函数映射 + terminal 一次性语义。
 - `session/cancel` RPC 方法与 mock 传输测试。
 
@@ -97,7 +97,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 
 ### 已完成
 - `docs/ASTRBOT_ROUTER_DESIGN.md`：三路由决策树 + 故障降级。
-- `evals/routing/cases.jsonl`：12 条初始集。
+- `evals/routing/cases.jsonl`：50 条评估集（初始 12 条已扩充）。
 
 ### 已完成（代码骨架）
 - [x] 纯函数路由引擎原型（关键词 + 正则降级路径，`astrbot_router/`）
@@ -117,7 +117,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 ### 已完成
 - `docs/PERSONA_PROVIDER_CONTRACT.md` + 双 Schema + 5 不变量。
 - `docs/PERSONA_PLAN_B_DESIGN.md`：两段式流水线。
-- `evals/persona/cases.jsonl`：20 条 + judge prompt。
+- `evals/persona/cases.jsonl`：50 条 + judge prompt。
 
 ### 已完成（代码骨架）
 - [x] Stage 1 JSON 解析 + 静默降级纯函数（`persona_plan_b/core.py`）
@@ -126,7 +126,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 
 ### 剩余
 - [ ] Plan B 接入 Persona Provider 契约层（A2A 服务化）
-- [ ] Plan B 跑 `evals/persona/cases.jsonl` 全集
+- [ ] 用真实模型输出跑 `evals/persona/cases.jsonl` 全集（当前 predictions 为构造 fixture）
 - [x] persona eval ≥ 50 条（已完成：50 条）
 
 ### 退出标准
@@ -161,7 +161,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 
 ### 已完成
 - `docs/EVAL_DESIGN.md`：三类指标与阈值。
-- routing 50 / persona 50 / memory 50 初始集（目标 150/150 已达成）。
+- routing 50 / persona 50 / memory 50 初始集（数量目标已达成；routing 类别不均衡：tech 43 / chat 4 / embodiment 3）。
 
 ### 已完成（代码骨架）
 - [x] routing accuracy / macro-F1
@@ -171,8 +171,10 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 - [x] eval-all 聚合入口（`run_evals.py all --baseline`）
 
 ### 已完成（全量离线评估）
-- [x] routing 50 / memory 50 / persona 50 全维度离线 baseline
+- [x] routing 50 / memory 50 / persona 50 全维度离线 baseline（fixture 口径）
 - [x] eval-all 一键聚合与全门禁校验（`python scripts/run_evals.py all --baseline --enforce-thresholds`）
+
+> 口径提醒：以上“全维度通过”使用的是仓库内构造的 predictions 与同源 routing 标签，只能证明 runner 与门禁可运行，不能证明真实系统质量。
 
 ### 剩余
 - [ ] 引入真实系统在线 trace 回流与人工 judge 抽样复核
@@ -189,7 +191,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 | A2A 规范变化 | bridge 返工 | wire schema 标注"冻结草案"，v2 预留 stream 参数 | 🟡 受控 |
 | dsh API 变化 | Phase 2 阻塞 | 契约集中在 wire schema，单一改动点 | 🟢 低 |
 | MaiBot 停更 | 人格能力退化 | Persona Provider 接口 + Plan B | 🟢 已缓解 |
-| 评估集过小 | 指标不稳定 | 目标各 50 条；当前已完成 150/150 | 🟢 已缓解 |
+| 评估集自证 | 指标虚高 | routing 标签与规则同源、predictions 为构造 fixture；需真实模型输出与独立标注 | 🔴 待处理 |
 | AGPL/GPL 边界 | 合规风险 | 独立进程 + 网络协议交互，不链接代码 | 🟢 已隔离 |
 | Prompt injection | 执行安全 | 安全模型 T1 防线 + 沙箱 | 🟡 文档已定，实现待做 |
 
