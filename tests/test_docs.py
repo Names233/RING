@@ -18,6 +18,7 @@ EXPECTED_DOCUMENTS = [
     "docs/ACP_BRIDGE_WIRE_SCHEMA.md",
     "docs/AIRI_EMBODIMENT_DESIGN.md",
     "docs/DEVELOPMENT_ROADMAP.md",
+    "docs/HYBRID_REDUNDANCY_DESIGN.md",
     "evals/README.md",
 ]
 
@@ -36,6 +37,7 @@ INDEX_FILES = {
         "./docs/ACP_BRIDGE_WIRE_SCHEMA.md",
         "./docs/AIRI_EMBODIMENT_DESIGN.md",
         "./docs/DEVELOPMENT_ROADMAP.md",
+        "./docs/HYBRID_REDUNDANCY_DESIGN.md",
     ],
     "DEVELOPMENT.md": [
         "ARCHITECTURE.md",
@@ -51,6 +53,7 @@ INDEX_FILES = {
         "docs/ACP_BRIDGE_WIRE_SCHEMA.md",
         "docs/AIRI_EMBODIMENT_DESIGN.md",
         "docs/DEVELOPMENT_ROADMAP.md",
+        "docs/HYBRID_REDUNDANCY_DESIGN.md",
     ],
 }
 
@@ -177,3 +180,20 @@ def test_context_strategy_covers_required_sections() -> None:
     doc = (REPO_ROOT / "docs/OPENVIKING_CONTEXT_STRATEGY.md").read_text(encoding="utf-8")
     for section in CONTEXT_STRATEGY_SECTIONS:
         assert section in doc, f"Context strategy document missing section: {section}"
+
+HYBRID_REDUNDANCY_SECTIONS = [
+    "痛点与核心目标",
+    "三层拓扑架构与角色划分",
+    "三级运行模式与优雅降级矩阵",
+    "心跳检测与状态机演进",
+    "数据一致性与记忆同步设计",
+    "网络互联与零信任安全架构",
+    "部署实施与运维指引（脱敏模板）",
+    "验收标准与测试用例",
+]
+
+
+def test_hybrid_redundancy_covers_required_sections() -> None:
+    doc = (REPO_ROOT / "docs/HYBRID_REDUNDANCY_DESIGN.md").read_text(encoding="utf-8")
+    for section in HYBRID_REDUNDANCY_SECTIONS:
+        assert section in doc, f"Hybrid redundancy document missing section: {section}"

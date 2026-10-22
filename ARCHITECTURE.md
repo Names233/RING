@@ -387,8 +387,11 @@ event_bus:            # → NATS / Redis Streams
 
 ## 五、部署架构（v3 版）
 
+### 5.1 单机全量部署（开发与单节点参考）
+
 ```yaml
-# docker-compose.yml
+# docker-compose.yml（单机开发环境，包含全套服务）
+
 
 version: "3.8"
 
@@ -492,6 +495,14 @@ volumes:
   airi_data:
   dsh_data:
 ```
+
+### 5.2 云地协同与高可用冗余架构（解决关机失联）
+
+在实际运行中，若全量运行在个人电脑上，**电脑关机将导致数字生命完全失联**。RING 采用**“云端驻守灵魂与感官，本地承载双手与华服，边缘守护最后防线”**的混合分级架构（详见 [云地混合冗余设计](./docs/HYBRID_REDUNDANCY_DESIGN.md)）：
+
+1. **云端常驻节点 (Cloud VPS)**：部署 AstrBot（感知路由）、MaiBot（灵魂对话）、OpenViking（权威记忆主库）、LiteLLM（统一网关），确保 24/7 消息即时响应与人格在线。
+2. **本地增强节点 (Local PC)**：部署 AIRI（Live2D/VRM 渲染与语音化身）、dsh（系统沙箱与代码执行双手）、ACP Bridge。平时开机提供极致体验；关机时自动优雅降级，聊天功能由云端无缝接管，杜绝失联。
+3. **边缘兜底层 (Cloudflare Edge)**：借助 Cloudflare Tunnel 建立出站加密通道（零公网暴露端口）；Cloudflare Workers 提供极端网络故障下的快速保活响应。
 
 ---
 

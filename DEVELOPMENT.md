@@ -232,6 +232,7 @@ python scripts/run_evals.py all --baseline
 - `docs/ACP_BRIDGE_WIRE_SCHEMA.md`：Bridge v1 wire 冻结草案与错误映射
 - `docs/AIRI_EMBODIMENT_DESIGN.md`：AIRI 化身层接入设计
 - `docs/DEVELOPMENT_ROADMAP.md`：Phase 0–6 当前状态、剩余工作与风险登记表
+- `docs/HYBRID_REDUNDANCY_DESIGN.md`：云端常驻、本地化身与边缘兜底的三级高可用设计与降级状态机
 - `evals/README.md`：评估集口径、阈值、fixture 与真实模型输出的区别
 - `acp-bridge/README.md`：bridge 运行方式与当前限制
 - `evals/persona/judge_prompt.md`：人格 judge prompt（1–5 分五维评分）
