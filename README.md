@@ -1,4 +1,4 @@
-# Digital Genesis
+# RING
 
 > **AstrBot × MaiBot × AIRI × dsh × OpenViking — 五合一融合架构 v3**
 >
