@@ -1,4 +1,4 @@
-# Digital Genesis — v3 架构修订（2026-10-12）
+# RING — v3 架构修订（2026-10-12）
 
 > MaiBot 是灵魂，AIRI 是化身，AstrBot 是耳目，dsh 是双手，OpenViking 是记忆
 > —— 创世，让数字生命降临。

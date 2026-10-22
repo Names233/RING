@@ -4,7 +4,7 @@
 > 归属：Phase 1（记忆层）核心规范  
 > 关联文档：[`ARCHITECTURE.md`](../ARCHITECTURE.md), [`OPENVIKING_PERMISSION_MATRIX.md`](./OPENVIKING_PERMISSION_MATRIX.md)
 
-OpenViking 作为 Digital Genesis 的统一上下文总线，承载全局资源（`resources/`）、用户画像（`users/`）、各 Agent 经历（`agents/`）、共享上下文（`shared/`）与工程技能（`skills/`）。
+OpenViking 作为 RING 的统一上下文总线，承载全局资源（`resources/`）、用户画像（`users/`）、各 Agent 经历（`agents/`）、共享上下文（`shared/`）与工程技能（`skills/`）。
 
 > 命名空间说明：上述 `resources/`、`users/`、`agents/`、`shared/`、`skills/` 是逻辑视图；OpenViking 物理根为 `resources/`、`user/{id}/`、`agent/`，映射见 [`OPENVIKING_PERMISSION_MATRIX.md`](./OPENVIKING_PERMISSION_MATRIX.md) §1.1。L0/L1/L2 是本项目的 front matter 约定，不是 OpenViking 原生分层。
 
@@ -133,7 +133,7 @@ $$C(t) = \min\left(1.0, \, C_0 \cdot e^{-\lambda \cdot \Delta t} + \alpha \cdot 
 各 Agent 统一通过 MCP 协议挂载 OpenViking。以下为标准的 Agent Plugins 1.0 声明片段：
 
 ```yaml
-# OpenViking Client Configuration for Digital Genesis Agents
+# OpenViking Client Configuration for RING Agents
 mcp_client:
   endpoint: "http://openviking:8080/mcp"
   timeout_seconds: 15

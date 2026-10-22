@@ -1,4 +1,4 @@
-# Digital Genesis 评估集
+# RING 评估集
 
 本目录存放离线评估集、评估阈值与评估 runner。设计目标与指标解释见 [`docs/EVAL_DESIGN.md`](../docs/EVAL_DESIGN.md)。
 

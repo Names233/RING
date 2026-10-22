@@ -1,11 +1,11 @@
-# Digital Genesis 开发文档
+# RING 开发文档
 
 本仓库当前处于 **v3 架构已定稿、Phase 0 文档与代码骨架** 阶段，尚未完成任何真实系统联调。本文描述仓库结构、可运行组件、开发与验证流程、当前 CI 状态与已知缺口。最后更新：2026-10-20。
 
 ## 仓库结构
 
 ```text
-digital-genesis/
+RING/
 ├── ARCHITECTURE.md      # v3 架构设计（权威文档）
 ├── DEVELOPMENT.md       # 本文档：工程状态、开发流程、验收标准
 ├── README.md            # 项目入口与摘要

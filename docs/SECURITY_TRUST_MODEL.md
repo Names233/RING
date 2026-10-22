@@ -1,4 +1,4 @@
-# Digital Genesis 安全与信任模型
+# RING 安全与信任模型
 
 > 版本：v1（2026-10-20 核查实现）
 > 范围：AstrBot × MaiBot × AIRI × dsh × OpenViking 五件套 + ACP Bridge、模型网关、事件总线。

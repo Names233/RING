@@ -1,6 +1,6 @@
 # Persona Provider A2A 契约
 
-Persona Provider 是 Digital Genesis 中可替换的“灵魂层”。MaiBot 是当前实现，但接口层面不绑定 MaiBot：任何满足本契约的服务都可以替换它。
+Persona Provider 是 RING 中可替换的“灵魂层”。MaiBot 是当前实现，但接口层面不绑定 MaiBot：任何满足本契约的服务都可以替换它。
 
 - 请求 Schema：[`schemas/persona-provider.schema.json`](../schemas/persona-provider.schema.json)
 - 响应 Schema：[`schemas/persona-provider-response.schema.json`](../schemas/persona-provider-response.schema.json)

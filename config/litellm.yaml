@@ -1,4 +1,4 @@
-# Digital Genesis model gateway
+# RING model gateway
 # Docs: https://docs.litellm.ai/docs/config/yaml
 model_list:
   - model_name: persona-chat
