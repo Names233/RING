@@ -19,6 +19,7 @@ EXPECTED_DOCUMENTS = [
     "docs/AIRI_EMBODIMENT_DESIGN.md",
     "docs/DEVELOPMENT_ROADMAP.md",
     "docs/HYBRID_REDUNDANCY_DESIGN.md",
+    "docs/MAIBOT_REPLACEMENT_STUDY.md",
     "evals/README.md",
 ]
 
@@ -38,6 +39,7 @@ INDEX_FILES = {
         "./docs/AIRI_EMBODIMENT_DESIGN.md",
         "./docs/DEVELOPMENT_ROADMAP.md",
         "./docs/HYBRID_REDUNDANCY_DESIGN.md",
+        "./docs/MAIBOT_REPLACEMENT_STUDY.md",
     ],
     "DEVELOPMENT.md": [
         "ARCHITECTURE.md",
@@ -54,6 +56,7 @@ INDEX_FILES = {
         "docs/AIRI_EMBODIMENT_DESIGN.md",
         "docs/DEVELOPMENT_ROADMAP.md",
         "docs/HYBRID_REDUNDANCY_DESIGN.md",
+        "docs/MAIBOT_REPLACEMENT_STUDY.md",
     ],
 }
 
@@ -197,3 +200,17 @@ def test_hybrid_redundancy_covers_required_sections() -> None:
     doc = (REPO_ROOT / "docs/HYBRID_REDUNDANCY_DESIGN.md").read_text(encoding="utf-8")
     for section in HYBRID_REDUNDANCY_SECTIONS:
         assert section in doc, f"Hybrid redundancy document missing section: {section}"
+
+MAIBOT_REPLACEMENT_SECTIONS = [
+    "现状剖析：为什么必须剔除 MaiBot？",
+    "AstrBot 自身承担人格（Persona）的能力深度评测",
+    "业界优秀开源人格与角色扮演项目调研",
+    "三套剔除与重构落地演进方案",
+    "综合选型决策与推荐路线",
+]
+
+
+def test_maibot_replacement_covers_required_sections() -> None:
+    doc = (REPO_ROOT / "docs/MAIBOT_REPLACEMENT_STUDY.md").read_text(encoding="utf-8")
+    for section in MAIBOT_REPLACEMENT_SECTIONS:
+        assert section in doc, f"MaiBot replacement document missing section: {section}"
