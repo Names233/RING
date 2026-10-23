@@ -100,6 +100,7 @@ AstrBot (耳目) ── 平台接入 / 意图路由 / 消息收发
 - [开发路线图](./docs/DEVELOPMENT_ROADMAP.md)
 - [云地混合冗余与高可用设计](./docs/HYBRID_REDUNDANCY_DESIGN.md)
 - [MaiBot 剔除与人格层重构探究](./docs/MAIBOT_REPLACEMENT_STUDY.md)
+- [方案审计报告与缺陷清单](./docs/ARCHITECTURE_AUDIT_AND_DEFECTS_2026.md)
 - [评估集说明与运行方式](./evals/README.md)
 - [ACP Bridge 运行说明](./acp-bridge/README.md)
 - [Persona judge prompt](./evals/persona/judge_prompt.md)

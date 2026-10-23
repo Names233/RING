@@ -20,6 +20,7 @@ EXPECTED_DOCUMENTS = [
     "docs/DEVELOPMENT_ROADMAP.md",
     "docs/HYBRID_REDUNDANCY_DESIGN.md",
     "docs/MAIBOT_REPLACEMENT_STUDY.md",
+    "docs/ARCHITECTURE_AUDIT_AND_DEFECTS_2026.md",
     "evals/README.md",
 ]
 
@@ -40,6 +41,7 @@ INDEX_FILES = {
         "./docs/DEVELOPMENT_ROADMAP.md",
         "./docs/HYBRID_REDUNDANCY_DESIGN.md",
         "./docs/MAIBOT_REPLACEMENT_STUDY.md",
+        "./docs/ARCHITECTURE_AUDIT_AND_DEFECTS_2026.md",
     ],
     "DEVELOPMENT.md": [
         "ARCHITECTURE.md",
@@ -57,6 +59,7 @@ INDEX_FILES = {
         "docs/DEVELOPMENT_ROADMAP.md",
         "docs/HYBRID_REDUNDANCY_DESIGN.md",
         "docs/MAIBOT_REPLACEMENT_STUDY.md",
+        "docs/ARCHITECTURE_AUDIT_AND_DEFECTS_2026.md",
     ],
 }
 
@@ -214,3 +217,18 @@ def test_maibot_replacement_covers_required_sections() -> None:
     doc = (REPO_ROOT / "docs/MAIBOT_REPLACEMENT_STUDY.md").read_text(encoding="utf-8")
     for section in MAIBOT_REPLACEMENT_SECTIONS:
         assert section in doc, f"MaiBot replacement document missing section: {section}"
+
+AUDIT_REPORT_SECTIONS = [
+    "背景与审计结论概要",
+    "缺陷严重度总览与分类矩阵",
+    "P0 阻断级缺陷详细剖析",
+    "P1 核心架构与安全缺陷详细剖析",
+    "P2 论断与证据不足剖析",
+    "系统整改路线图与落地决议",
+]
+
+
+def test_audit_report_covers_required_sections() -> None:
+    doc = (REPO_ROOT / "docs/ARCHITECTURE_AUDIT_AND_DEFECTS_2026.md").read_text(encoding="utf-8")
+    for section in AUDIT_REPORT_SECTIONS:
+        assert section in doc, f"Audit report missing section: {section}"
