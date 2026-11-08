@@ -3,24 +3,29 @@
 model_list:
   - model_name: persona-chat
     litellm_params:
-      model: deepseek/deepseek-chat
-      api_key: os.environ/DEEPSEEK_API_KEY
+      model: openai/gemini-3.8-flash
+      api_base: os.environ/AGT_BASE_URL
+      api_key: os.environ/AGT_API_KEY
   - model_name: persona-trigger
     litellm_params:
-      model: ollama/qwen3:1b
-      api_base: os.environ/OLLAMA_BASE_URL
+      model: openai/gemini-3.8-flash
+      api_base: os.environ/AGT_BASE_URL
+      api_key: os.environ/AGT_API_KEY
   - model_name: coding-primary
     litellm_params:
-      model: anthropic/claude-sonnet-4-5
-      api_key: os.environ/ANTHROPIC_API_KEY
+      model: openai/gemini-3.8-flash
+      api_base: os.environ/AGT_BASE_URL
+      api_key: os.environ/AGT_API_KEY
   - model_name: coding-fallback
     litellm_params:
-      model: deepseek/deepseek-coder
-      api_key: os.environ/DEEPSEEK_API_KEY
+      model: openai/gemini-3.8-flash
+      api_base: os.environ/AGT_BASE_URL
+      api_key: os.environ/AGT_API_KEY
   - model_name: intent-router
     litellm_params:
-      model: deepseek/deepseek-chat
-      api_key: os.environ/DEEPSEEK_API_KEY
+      model: openai/gemini-3.8-flash
+      api_base: os.environ/AGT_BASE_URL
+      api_key: os.environ/AGT_API_KEY
 
 router_settings:
   routing_strategy: simple-shuffle

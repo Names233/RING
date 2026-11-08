@@ -8,8 +8,18 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Callable, Protocol
+
+try:
+    from ring_common import extract_first_json_object
+except ImportError:
+    _repo_root = str(Path(__file__).resolve().parents[1])
+    if _repo_root not in sys.path:
+        sys.path.insert(0, _repo_root)
+    from ring_common import extract_first_json_object
 
 EMOTIONS = {"neutral", "happy", "excited", "sad", "angry", "thinking", "shy", "sleepy"}
 FALLBACK_TEXT = "我卡住了…"
@@ -123,13 +133,7 @@ def parse_trigger_output(raw: str) -> tuple[bool, str, bool]:
     if not isinstance(raw, str):
         return False, FALLBACK_EMOTION, True
 
-    match = re.search(r"\{.*\}", raw, flags=re.DOTALL)
-    if not match:
-        return False, FALLBACK_EMOTION, True
-    try:
-        value = json.loads(match.group(0))
-    except json.JSONDecodeError:
-        return False, FALLBACK_EMOTION, True
+    value = extract_first_json_object(raw)
     if not isinstance(value, dict):
         return False, FALLBACK_EMOTION, True
 

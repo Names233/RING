@@ -9,10 +9,12 @@ persona:
     protocol: a2a
     input: [message, group_context, recalled_memory]
     output: [should_reply, text, emotion]
+  plan_b: {trigger_model: gemini-3.8-flash, chat_model: gemini-3.8-flash}
 
 perception:
   platforms: [qq, telegram, discord]
   message_enhancement_only: true
+  router_model: gemini-3.8-flash
   routing:
     chat: maibot
     tech: dsh
@@ -42,6 +44,9 @@ memory:
     skills: viking://skills/
 
 model_gateway:
+  provider: agt
+  endpoint: http://litellm:4000/v1
+  default_model: gemini-3.8-flash
   base_url: http://litellm:4000/v1
   routing:
     persona-chat: persona-chat

@@ -21,6 +21,8 @@ import re
 from dataclasses import dataclass
 from typing import Literal
 
+from ring_common.llm_client import AGTClient, extract_first_json_object
+
 Route = Literal["chat", "tech", "embodiment"]
 
 VALID_ROUTES: frozenset[str] = frozenset({"chat", "tech", "embodiment"})
@@ -165,3 +167,56 @@ def decide_downstream(decision: RoutingDecision) -> str:
         "embodiment": "airi",
     }
     return mapping[decision.route]
+
+
+def classify_with_agt(
+    text: str,
+    client: AGTClient | None = None,
+    confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD,
+) -> RoutingDecision:
+    if not isinstance(text, str) or not text.strip():
+        raise ValueError("text must be a non-empty string")
+
+    if _explicit_trigger(text) is not None:
+        return classify(text, confidence_threshold=confidence_threshold)
+
+    client = client or AGTClient.from_env()
+    if client.is_configured():
+        try:
+            raw = client.chat_completion(
+                [
+                    {
+                        "role": "system",
+                        "content": (
+                            'You are the AstrBot first-level intent router. '
+                            'Classify the user message into route in ["chat", "tech", "embodiment"] '
+                            'with confidence in [0.0, 1.0] and reason. '
+                            'Output ONLY valid JSON: {"route": "chat"|"tech"|"embodiment", "confidence": 0.9, "reason": "..."}'
+                        ),
+                    },
+                    {"role": "user", "content": text},
+                ],
+                temperature=0.0,
+                max_tokens=512,
+            )
+            parsed = extract_first_json_object(raw)
+            if (
+                isinstance(parsed, dict)
+                and parsed.get("route") in VALID_ROUTES
+                and not isinstance(parsed.get("confidence"), bool)
+            ):
+                try:
+                    conf = float(parsed["confidence"])
+                    return classify(
+                        text,
+                        model_route=parsed["route"],
+                        model_confidence=conf,
+                        model_reason=str(parsed.get("reason", "agt-gemini-3.8-flash")),
+                        confidence_threshold=confidence_threshold,
+                    )
+                except (ValueError, TypeError, KeyError):
+                    pass
+        except Exception:
+            pass
+
+    return classify(text, confidence_threshold=confidence_threshold)

@@ -16,6 +16,8 @@ from typing import Any, Callable
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
+from ring_common.llm_client import AGTClient
+
 from .core import (
     FALLBACK_EMOTION,
     FALLBACK_TEXT,
@@ -42,16 +44,59 @@ except Exception:  # pragma: no cover
 
 def default_trigger_model(prompt: str) -> str:
     """Offline default trigger model used when no external model is provided."""
+    client = AGTClient.from_env()
+    if client.is_configured():
+        try:
+            return client.chat_completion(
+                [
+                    {
+                        "role": "system",
+                        "content": (
+                            'You are the Stage-1 trigger classifier. Output ONLY a JSON object: '
+                            '{"should_reply": true|false, "emotion": "neutral"|"happy"|"excited"|"sad"|"angry"|"thinking"|"shy"|"sleepy"}.'
+                        ),
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.1,
+                max_tokens=512,
+            )
+        except Exception:
+            pass
+
     lower = prompt.lower()
-    if "@" in prompt or "at_me: true" in lower:
-        return '{"should_reply": true, "emotion": "happy"}'
+    at_flag = (
+        "是否被 @：是" in prompt
+        or "at_me: true" in lower
+        or ("@" in prompt and "是否被 @：否" not in prompt)
+    )
+    if at_flag:
+        return json.dumps({"should_reply": True, "emotion": "happy"}, ensure_ascii=False)
     if any(word in prompt for word in ("累", "想你", "好玩", "哈哈", "失恋", "生病")):
-        return '{"should_reply": true, "emotion": "sad" if "失恋" in prompt or "累" in prompt else "happy"}'
-    return '{"should_reply": false, "emotion": "neutral"}'
+        emotion = "sad" if ("失恋" in prompt or "累" in prompt or "生病" in prompt) else "happy"
+        return json.dumps({"should_reply": True, "emotion": emotion}, ensure_ascii=False)
+    return json.dumps({"should_reply": False, "emotion": "neutral"}, ensure_ascii=False)
 
 
 def default_chat_model(prompt: str) -> str:
     """Offline default chat generator used when no external model is provided."""
+    client = AGTClient.from_env()
+    if client.is_configured():
+        try:
+            return client.chat_completion(
+                [
+                    {
+                        "role": "system",
+                        "content": "你是麦麦（MaiMai），数字创世纪的人格核心。请直接输出简短自然的中文回复正文（不超过100字），不要输出JSON或解释。",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.6,
+                max_tokens=512,
+            )
+        except Exception:
+            pass
+
     if "累" in prompt:
         return "抱抱你，辛苦啦，歇会儿吧～"
     if "早上好" in prompt:
