@@ -34,4 +34,5 @@ jobs:
         run: pytest -q
 
       - name: Offline eval gate
+        if: matrix.directory == '.'
         run: python scripts/run_evals.py routing --baseline --enforce-thresholds
