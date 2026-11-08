@@ -68,7 +68,7 @@ OpenViking (记忆, 1933) ── 各 Agent 以 MCP/Agent Plugins 直连
 - **评估口径**：离线评估的 predictions 是仓库内构造的 fixture；routing 标签由同一套 `rule_classify` 生成，因此“基线 100%”只证明回归一致，不代表真实模型质量。
 - **已知缺口**：ACP Bridge 同步路径拿不到 ACP 执行正文（`session/update` 未接入），dsh 的真实 ACP 传输未核实；OpenViking 文档中的 `viking://memories/...` 是逻辑命名空间，与物理布局的映射见 [权限矩阵](./docs/OPENVIKING_PERMISSION_MATRIX.md)。
 - **CI**：最近 9 次 run 连续失败（依赖缺失 + eval gate 矩阵条件），本地等价命令全绿；根因与修复见 [DEVELOPMENT.md](./DEVELOPMENT.md#ci)。
-- **License**：本仓库自身尚未添加 LICENSE 文件；上表是四个上游项目的 license（AstrBot 移除后不含其 AGPL-3.0）。
+- **License**：本仓库代码为 MIT（见 [LICENSE](./LICENSE)）；`patches/maibot-openviking/` 因衍生自 MaiBot 而按 GPL-3.0 发布；上游组件的许可证与分发义务见 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)。
 
 完整缺口清单与待办见 [DEVELOPMENT.md](./DEVELOPMENT.md)。
 
