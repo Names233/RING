@@ -1,0 +1,61 @@
+---
+- name: 检查备份口令
+  ansible.builtin.stat:
+    path: "{{ ring_base }}/backup/.passphrase"
+  register: backup_pass_file
+
+- name: 生成备份口令
+  ansible.builtin.copy:
+    dest: "{{ ring_base }}/backup/.passphrase"
+    content: "{{ backup_passphrase if backup_passphrase | length > 0 else lookup('password', '/dev/null length=48 chars=ascii_letters,digits') }}\n"
+    owner: root
+    group: root
+    mode: "0600"
+  when: not backup_pass_file.stat.exists
+  no_log: true
+
+- name: 渲染 backup.env
+  ansible.builtin.template:
+    src: backup.env.j2
+    dest: "{{ ring_base }}/backup/backup.env"
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+
+- name: 创建备份目录
+  ansible.builtin.file:
+    path: "{{ ring_base }}/backup/spool"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: 部署备份脚本
+  ansible.builtin.template:
+    src: ring-backup.sh.j2
+    dest: "{{ ring_base }}/backup/bin/ring-backup.sh"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: 部署 ring-backup.service
+  ansible.builtin.template:
+    src: ring-backup.service.j2
+    dest: /etc/systemd/system/ring-backup.service
+    mode: "0644"
+  notify: reload systemd
+
+- name: 部署 ring-backup.timer
+  ansible.builtin.template:
+    src: ring-backup.timer.j2
+    dest: /etc/systemd/system/ring-backup.timer
+    mode: "0644"
+  notify: reload systemd
+
+- name: 启用备份定时器
+  ansible.builtin.systemd_service:
+    name: ring-backup.timer
+    enabled: "{{ backup_enabled | bool }}"
+    state: "{{ 'started' if backup_enabled | bool else 'stopped' }}"
+    daemon_reload: true

@@ -1,0 +1,23 @@
+[Unit]
+Description=RING MaiBot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{ ring_user }}
+Group={{ ring_group }}
+WorkingDirectory={{ ring_base }}/maibot
+Environment=TZ={{ backup_timezone }}
+Environment=UV_TOOL_DIR={{ ring_base }}/toolenv
+Environment=PATH={{ uv_bin_dir }}:/usr/local/bin:/usr/bin:/bin
+ExecStart={{ uv_bin_dir }}/maibot run --directory {{ ring_base }}/maibot
+Restart=on-failure
+RestartSec=10
+MemoryMax={{ maibot_memory_max }}
+MemorySwapMax={{ maibot_memory_swap_max }}
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

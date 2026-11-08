@@ -1,0 +1,56 @@
+# syntax=docker/dockerfile:1
+#
+# MaiBot 1.3.19 + OpenViking 读写钩子（补丁在【构建期】打进 site-packages）
+#
+# 关键设计：patches/maibot-openviking/ 的两个新模块 + 三处挂载，通过 install.py
+# 在镜像构建时应用，而不是运行时手工改 site-packages。这样镜像本身即"已打补丁"，
+# 升级 MaiBot 时要么整体换镜像，要么在构建阶段重新验证锚点（锚点漂移会构建失败）。
+FROM python:3.13-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    TZ=Asia/Shanghai
+
+ARG MAIBOT_VERSION=1.3.19
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates tzdata \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN pip install "maibot==${MAIBOT_VERSION}"
+
+# 构建期打补丁：新增模块 + 三处挂载（锚点必须唯一命中，否则构建直接失败）
+COPY patches/maibot-openviking /opt/ring/patches/maibot-openviking
+RUN python /opt/ring/patches/maibot-openviking/install.py \
+      --apply \
+      --site-packages "$(python -c 'import site; print(site.getsitepackages()[0])')" \
+      --mai-root /tmp/maibot-patch \
+      --no-config \
+      --no-diff \
+ && rm -rf /tmp/maibot-patch \
+ && python - <<'PY'
+import pathlib, sys
+sp = pathlib.Path(sys.prefix) / "lib" / f"python{sys.version_info.major}.{sys.version_info.minor}" / "site-packages"
+need = [
+    sp / "src/maisaka/memory/openviking_injector.py",
+    sp / "src/maisaka/memory/openviking_writer.py",
+]
+missing = [str(p) for p in need if not p.is_file()]
+text = (sp / "src/maisaka/reasoning_engine.py").read_text(encoding="utf-8")
+if "build_openviking_memory_message" not in text:
+    missing.append("reasoning_engine.py 未注入 OpenViking 注入器")
+if missing:
+    raise SystemExit("补丁校验失败: " + ", ".join(missing))
+print("patch-ok: openviking injector + writer 已在镜像内生效")
+PY
+
+COPY deploy/compose/maibot/entrypoint.sh /usr/local/bin/ring-maibot-entrypoint.sh
+COPY deploy/compose/maibot/prepare_instance.py /usr/local/bin/prepare_instance.py
+RUN chmod 0755 /usr/local/bin/ring-maibot-entrypoint.sh
+
+WORKDIR /app/maibot
+EXPOSE 8000 8001 8090
+
+ENTRYPOINT ["/usr/local/bin/ring-maibot-entrypoint.sh"]

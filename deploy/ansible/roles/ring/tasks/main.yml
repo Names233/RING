@@ -1,0 +1,30 @@
+---
+# RING 主体：代码、uv tools、配置、systemd、备份
+- name: 代码与依赖
+  ansible.builtin.include_tasks: app.yml
+  tags: [app]
+
+- name: OpenViking
+  ansible.builtin.include_tasks: openviking.yml
+  tags: [openviking]
+
+- name: MaiBot
+  ansible.builtin.include_tasks: maibot.yml
+  tags: [maibot]
+
+- name: ring-cloud
+  ansible.builtin.include_tasks: cloud.yml
+  tags: [cloud]
+
+- name: NapCat
+  ansible.builtin.include_tasks: napcat.yml
+  tags: [napcat]
+
+- name: Caddy
+  ansible.builtin.include_tasks: caddy.yml
+  when: caddy_enabled | bool
+  tags: [caddy]
+
+- name: 备份
+  ansible.builtin.include_tasks: backup.yml
+  tags: [backup]

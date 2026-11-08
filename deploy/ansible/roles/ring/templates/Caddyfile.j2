@@ -1,0 +1,32 @@
+{
+	admin 127.0.0.1:2019
+	email {{ caddy_email }}
+}
+
+(ring_security) {
+	header {
+		Strict-Transport-Security "max-age=31536000;"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+}
+
+{{ ov_domain }} {
+	import ring_security
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:{{ openviking_port }}
+}
+
+{{ mb_domain }} {
+	import ring_security
+	encode zstd gzip
+	# WebUI 无登录墙，建议加 basic_auth：
+	#   1) caddy hash-password --plaintext '你的密码'
+	#   2) 取消下面三行注释
+	# basic_auth {
+	# 	ring <bcrypt-hash>
+	# }
+	reverse_proxy 127.0.0.1:{{ maibot_webui_port }}
+}

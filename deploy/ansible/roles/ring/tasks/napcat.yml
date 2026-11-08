@@ -1,0 +1,51 @@
+---
+- name: 拉取 NapCat 镜像
+  ansible.builtin.command:
+    cmd: docker pull {{ napcat_image }}
+  changed_when: "'Downloaded newer image' in napcat_pull.stdout"
+  register: napcat_pull
+
+- name: 检查 NapCat 容器
+  ansible.builtin.command:
+    cmd: docker inspect ring-napcat
+  register: napcat_inspect
+  changed_when: false
+  failed_when: false
+
+- name: 启动 NapCat 容器
+  ansible.builtin.command:
+    argv:
+      - docker
+      - run
+      - -d
+      - --name
+      - ring-napcat
+      - --restart
+      - unless-stopped
+      - --memory
+      - "1200m"
+      - -e
+      - "TZ={{ backup_timezone }}"
+      - -e
+      - "NAPCAT_UID={{ napcat_uid }}"
+      - -e
+      - "NAPCAT_GID={{ napcat_gid }}"
+      - -p
+      - "127.0.0.1:{{ napcat_onebot_port }}:3001"
+      - -p
+      - "127.0.0.1:{{ napcat_webui_port }}:6099"
+      - -v
+      - "{{ ring_base }}/napcat/config:/app/napcat/config"
+      - -v
+      - "{{ ring_base }}/napcat/qq:/app/.config/QQ"
+      - "{{ napcat_image }}"
+  when: napcat_inspect.rc != 0
+  register: napcat_run
+  changed_when: napcat_run.rc == 0
+
+- name: 提示 NapCat 首次登录
+  ansible.builtin.debug:
+    msg: >-
+      NapCat 首次启动后，用 SSH 隧道 ssh -L 6099:127.0.0.1:6099 登录 WebUI 扫码；
+      onebot11_<QQ>.json 的 WS 端口为 {{ napcat_onebot_port }}，
+      需与 MaiBot 的 snowluma adapter config.toml（server=127.0.0.1, port={{ napcat_onebot_port }}）一致。

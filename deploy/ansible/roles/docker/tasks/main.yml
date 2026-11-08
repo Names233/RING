@@ -1,0 +1,73 @@
+---
+# Docker Engine + compose 插件（NapCat 与（可选）Compose 路径共用）
+- name: 安装 Docker 的基础依赖
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - git
+      - tar
+      - gzip
+      - rsync
+      - python3
+      - python3-venv
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: 创建 apt keyrings 目录
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: 安装 Docker 官方 GPG key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+
+- name: 添加 Docker apt 源
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [arch={{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}
+      signed-by=/etc/apt/keyrings/docker.asc]
+      https://download.docker.com/linux/debian
+      {{ ansible_distribution_release }} stable
+    filename: docker
+    state: present
+
+- name: 安装 Docker Engine 与 compose 插件
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+
+- name: 启动 docker
+  ansible.builtin.systemd_service:
+    name: docker
+    enabled: true
+    state: started
+
+- name: 把 {{ ring_user }} 加入 docker 组
+  ansible.builtin.user:
+    name: "{{ ring_user }}"
+    groups: docker
+    append: true
+
+- name: 限制 docker 日志体积（避免 2G 磁盘被吃满）
+  ansible.builtin.copy:
+    dest: /etc/docker/daemon.json
+    mode: "0644"
+    content: |
+      {
+        "log-driver": "json-file",
+        "log-opts": { "max-size": "10m", "max-file": "3" }
+      }
+  notify: restart docker

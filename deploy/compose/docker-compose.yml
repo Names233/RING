@@ -1,0 +1,266 @@
+# RING — Docker Compose 部署（主推路径）
+#
+# 目标：一台干净机器（>=2C4G 推荐，最低 2G 内存 + 2G swap）从仓库直接起一套可对话的 RING。
+#
+# 使用方式：
+#   1) cp .env.example .env   然后按注释填写（或用 ./ring-init.sh 交互生成）
+#   2) docker compose --profile core up -d           # 最小可对话：openviking + maibot + napcat
+#      docker compose --profile ring up -d           # 加上 ring-cloud 三服务（18080/18081/18082）
+#      docker compose --profile edge up -d           # 加上 Caddy 反代（80/443）
+#      docker compose --profile backup run --rm backup   # 跑一次备份
+#
+# 所有宿主端口默认只绑 127.0.0.1，只有 edge profile 的 Caddy 对公网开放 80/443。
+# 数据全部 bind 到 ${RING_DATA_DIR}（默认 ./data），升级/重装不会丢。
+
+name: ring
+
+x-ring-logging: &ring-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-ring-common: &ring-common
+  restart: unless-stopped
+  logging: *ring-logging
+  networks:
+    - ring
+
+services:
+  # ---------------------------------------------------------------------------
+  # core: OpenViking 记忆库
+  # ---------------------------------------------------------------------------
+  openviking:
+    <<: *ring-common
+    profiles: ["core"]
+    image: ring/openviking:${OPENVIKING_VERSION:-0.5.3}
+    build:
+      context: ../..
+      dockerfile: deploy/compose/Dockerfile.openviking
+      args:
+        OPENVIKING_VERSION: ${OPENVIKING_VERSION:-0.5.3}
+    container_name: ring-openviking
+    command:
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "1933"
+      - "--config"
+      - "/data/ov.conf"
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      OPENVIKING_CONFIG_FILE: /data/ov.conf
+    volumes:
+      - ${RING_DATA_DIR:-./data}/openviking:/data
+    ports:
+      - "127.0.0.1:${OV_PORT:-1933}:1933"
+    healthcheck:
+      test:
+        - "CMD"
+        - "python"
+        - "-c"
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:1933/health', timeout=3).status == 200 else 1)"
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          memory: ${OV_MEM_LIMIT:-640M}
+
+  # ---------------------------------------------------------------------------
+  # core: MaiBot（唯一入口与对话主体，含 OpenViking 读写钩子）
+  # ---------------------------------------------------------------------------
+  maibot:
+    <<: *ring-common
+    profiles: ["core"]
+    image: ring/maibot:${MAIBOT_VERSION:-1.3.19}
+    build:
+      context: ../..
+      dockerfile: deploy/compose/Dockerfile.maibot
+      args:
+        MAIBOT_VERSION: ${MAIBOT_VERSION:-1.3.19}
+    container_name: ring-maibot
+    stop_grace_period: 30s
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      MAIBOT_INSTANCE_DIR: /app/maibot
+      OPENVIKING_BASE_URL: ${OPENVIKING_BASE_URL:-http://openviking:1933}
+      OPENVIKING_API_KEY: ${OV_USER_API_KEY:-}
+      OPENVIKING_API_KEY_FILE: ${OPENVIKING_API_KEY_FILE:-}
+      RING_OV_CONFIG_FORCE: ${RING_OV_CONFIG_FORCE:-0}
+    volumes:
+      - ${RING_DATA_DIR:-./data}/maibot:/app/maibot
+    ports:
+      - "127.0.0.1:${MAIBOT_WEBUI_PORT:-8001}:8001"
+      - "127.0.0.1:${MAIBOT_WS_PORT:-8000}:8000"
+      - "127.0.0.1:${MAIBOT_API_PORT:-8090}:8090"
+    healthcheck:
+      test:
+        - "CMD"
+        - "python"
+        - "-c"
+        - "import socket; s=socket.create_connection(('127.0.0.1',8001),3); s.close()"
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          memory: ${MAIBOT_MEM_LIMIT:-700M}
+
+  # ---------------------------------------------------------------------------
+  # core: NapCat（QQ 协议端，OneBot v11 WS 服务端 3001 + WebUI 6099）
+  # ---------------------------------------------------------------------------
+  napcat:
+    <<: *ring-common
+    profiles: ["core"]
+    image: ${NAPCAT_IMAGE:-mlikiowa/napcat-docker:latest}
+    container_name: ring-napcat
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      NAPCAT_UID: "${NAPCAT_UID:-1000}"
+      NAPCAT_GID: "${NAPCAT_GID:-1000}"
+    volumes:
+      - ${RING_DATA_DIR:-./data}/napcat/config:/app/napcat/config
+      - ${RING_DATA_DIR:-./data}/napcat/qq:/app/.config/QQ
+    ports:
+      - "127.0.0.1:${NAPCAT_ONEBOT_PORT:-3001}:3001"
+      - "127.0.0.1:${NAPCAT_WEBUI_PORT:-6099}:6099"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/3001'"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: ${NAPCAT_MEM_LIMIT:-1200M}
+
+  # ---------------------------------------------------------------------------
+  # ring: 自研 ring-cloud（openviking_service 18080 / persona_plan_b 18081 / ring_router 18082）
+  # ---------------------------------------------------------------------------
+  ring-cloud:
+    <<: *ring-common
+    profiles: ["ring"]
+    image: ring/ringcloud:${RING_IMAGE_TAG:-0.1.0}
+    build:
+      context: ../..
+      dockerfile: deploy/compose/Dockerfile.ringcloud
+    container_name: ring-cloud
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      RING_BIND_HOST: 0.0.0.0
+      OPENVIKING_DATA_DIR: /data/openviking
+      OPENVIKING_PORT: "18080"
+      PERSONA_PORT: "18081"
+      ROUTER_PORT: "18082"
+      HEARTBEAT_SECRET_TOKEN: ${HEARTBEAT_SECRET_TOKEN:-}
+      AGT_BASE_URL: ${AGT_BASE_URL:-http://host.docker.internal:8045/v1}
+      AGT_API_KEY: ${AGT_API_KEY:-}
+      AGT_MODEL: ${AGT_MODEL:-gemini-3.8-flash}
+      AGT_TIMEOUT_SECONDS: ${AGT_TIMEOUT_SECONDS:-20.0}
+      RING_OFFLINE_MODE: ${RING_OFFLINE_MODE:-0}
+      ACP_BRIDGE_URL: ${ACP_BRIDGE_URL:-http://127.0.0.1:18090}
+      AIRI_EMBODIMENT_URL: ${AIRI_EMBODIMENT_URL:-http://127.0.0.1:18092}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ${RING_DATA_DIR:-./data}/openviking:/data/openviking
+    ports:
+      - "127.0.0.1:${RING_OV_SERVICE_PORT:-18080}:18080"
+      - "127.0.0.1:${RING_PERSONA_PORT:-18081}:18081"
+      - "127.0.0.1:${RING_ROUTER_PORT:-18082}:18082"
+    healthcheck:
+      test:
+        - "CMD"
+        - "python"
+        - "-c"
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:18080/health', timeout=3).status == 200 else 1)"
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: ${RINGCLOUD_MEM_LIMIT:-180M}
+
+  # ---------------------------------------------------------------------------
+  # edge: Caddy 反代 + 自动 TLS（唯一对公网开放端口的服务）
+  # ---------------------------------------------------------------------------
+  caddy:
+    profiles: ["edge"]
+    image: ${CADDY_IMAGE:-caddy:2-alpine}
+    container_name: ring-caddy
+    restart: unless-stopped
+    logging: *ring-logging
+    networks:
+      - ring
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      OV_DOMAIN: ${OV_DOMAIN:-ov.example.com}
+      MB_DOMAIN: ${MB_DOMAIN:-mb.example.com}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+    volumes:
+      - ${RING_DATA_DIR:-./data}/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${RING_DATA_DIR:-./data}/caddy/data:/data
+      - ${RING_DATA_DIR:-./data}/caddy/config:/config
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 443"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # backup: 一次性任务（tar + gpg AES256 + WebDAV 上传 + 远端保留策略）
+  # 由 make backup / ringctl backup / 宿主 cron 触发，不常驻。
+  # ---------------------------------------------------------------------------
+  backup:
+    profiles: ["backup"]
+    image: ring/backup:${RING_IMAGE_TAG:-0.1.0}
+    build:
+      context: ../..
+      dockerfile: deploy/compose/backup/Dockerfile
+    container_name: ring-backup
+    restart: "no"
+    logging: *ring-logging
+    networks:
+      - ring
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      RING_DATA_DIR: /data
+      BACKUP_PATHS: ${BACKUP_PATHS:-openviking maibot napcat/config caddy}
+      BACKUP_SPOOL_DIR: /var/backups/ring
+      BACKUP_PASSPHRASE_FILE: /run/secrets/backup_passphrase
+      BACKUP_KEEP: ${BACKUP_KEEP:-14}
+      DAV_BASE: ${DAV_BASE:-}
+      DAV_USER: ${DAV_USER:-}
+      DAV_PASS: ${DAV_PASS:-}
+    volumes:
+      - ${RING_DATA_DIR:-./data}:/data:ro
+      - ${RING_DATA_DIR:-./data}/backup/passphrase:/run/secrets/backup_passphrase:ro
+      - ${RING_DATA_DIR:-./data}/backup/spool:/var/backups/ring
+    healthcheck:
+      test: ["CMD-SHELL", "command -v gpg && command -v curl && command -v tar"]
+      interval: 1h
+      timeout: 10s
+      retries: 1
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          memory: ${BACKUP_MEM_LIMIT:-256M}
+
+networks:
+  ring:
+    driver: bridge
+    name: ring

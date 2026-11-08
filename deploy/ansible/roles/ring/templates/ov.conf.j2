@@ -1,0 +1,43 @@
+{
+  "server": {
+    "host": {{ ring_bind_host | to_json }},
+    "port": {{ openviking_port | int }},
+    "workers": 1,
+    "root_api_key": {{ ov_root_api_key | to_json }}
+  },
+  "storage": {
+    "workspace": {{ (ring_base ~ '/data/openviking/workspace') | to_json }}
+  },
+  "embedding": {
+    "dense": {
+      "provider": "openai",
+      "model": {{ ov_embedding_model | to_json }},
+      "api_key": {{ ov_embedding_api_key | to_json }},
+      "api_base": {{ ov_embedding_api_base | to_json }},
+      "dimension": {{ ov_embedding_dimension | int }},
+      "input": "text",
+      "encoding_format": "float",
+      "batch_size": 32
+    },
+    "max_concurrent": 4,
+    "max_retries": 3
+  },
+  "rerank": {
+    "provider": "openai",
+    "api_key": {{ ov_rerank_api_key | to_json }},
+    "api_base": {{ ov_rerank_api_base | to_json }},
+    "model": {{ ov_rerank_model | to_json }},
+    "threshold": {{ ov_rerank_threshold | float }},
+    "timeout": 30.0
+  },
+  "vlm": {
+    "provider": "openai",
+    "model": {{ ov_vlm_model | to_json }},
+    "api_key": {{ ov_vlm_api_key | to_json }},
+    "api_base": {{ ov_vlm_api_base | to_json }},
+    "temperature": {{ ov_vlm_temperature | float }},
+    "timeout": 300.0,
+    "max_tokens": {{ ov_vlm_max_tokens | int }},
+    "max_retries": 2
+  }
+}

@@ -1,0 +1,24 @@
+---
+- name: 安装 Caddy（Debian/Ubuntu 官方源包）
+  ansible.builtin.apt:
+    name: caddy
+    state: present
+    update_cache: true
+
+- name: 渲染 Caddyfile
+  ansible.builtin.template:
+    src: Caddyfile.j2
+    dest: /etc/caddy/Caddyfile
+    mode: "0644"
+  notify: reload caddy
+
+- name: 校验 Caddyfile
+  ansible.builtin.command:
+    cmd: caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+  changed_when: false
+
+- name: 启动 Caddy
+  ansible.builtin.systemd_service:
+    name: caddy
+    enabled: true
+    state: started

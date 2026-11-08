@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# RING 备份（裸机版）：tar → gpg AES256 对称加密 → 本地留存 → 可选 WebDAV 上传 + 远端保留
+#
+# 由 ring-backup.timer 每天触发（/etc/systemd/system/ring-backup.timer）。
+# 环境来自 {{ ring_base }}/backup/backup.env：
+#   RING_DATA_DIR / BACKUP_PATHS / BACKUP_SPOOL_DIR / BACKUP_PASSPHRASE_FILE
+#   BACKUP_KEEP / DAV_BASE / DAV_USER / DAV_PASS
+#
+# 手动执行：sudo systemctl start ring-backup.service
+# 恢复：见 docs/DEPLOYMENT.md「备份与恢复」
+set -euo pipefail
+
+: "${RING_DATA_DIR:?RING_DATA_DIR 未设置}"
+: "${BACKUP_PATHS:=openviking maibot napcat/config caddy}"
+: "${BACKUP_SPOOL_DIR:=${RING_DATA_DIR}/backup/spool}"
+: "${BACKUP_PASSPHRASE_FILE:=${RING_DATA_DIR}/backup/.passphrase}"
+: "${BACKUP_KEEP:=14}"
+DAV_BASE="${DAV_BASE:-}"
+DAV_USER="${DAV_USER:-}"
+DAV_PASS="${DAV_PASS:-}"
+
+[ -r "$BACKUP_PASSPHRASE_FILE" ] || { echo "缺少口令文件: $BACKUP_PASSPHRASE_FILE" >&2; exit 1; }
+mkdir -p "$BACKUP_SPOOL_DIR"
+
+TS="$(date -u +%Y%m%dT%H%M%SZ)"
+NAME="ring-$TS.tar.gz.gpg"
+ARCHIVE="$BACKUP_SPOOL_DIR/$NAME"
+HOST="$(hostname -s 2>/dev/null || echo ring)"
+
+echo "[$(date -Is)] 备份开始: $ARCHIVE"
+
+existing=()
+for p in $BACKUP_PATHS; do
+  [ -e "$RING_DATA_DIR/$p" ] && existing+=("$p")
+done
+[ "${#existing[@]}" -gt 0 ] || { echo "BACKUP_PATHS 里没有任何存在的路径" >&2; exit 1; }
+
+tar -C "$RING_DATA_DIR" -czf - "${existing[@]}" \
+  | gpg --batch --yes --symmetric --cipher-algo AES256 \
+        --passphrase-file "$BACKUP_PASSPHRASE_FILE" \
+        --output "$ARCHIVE"
+chmod 600 "$ARCHIVE"
+
+SIZE="$(stat -c %s "$ARCHIVE")"
+SHA="$(sha256sum "$ARCHIVE" | awk '{print $1}')"
+printf '%s  %s\n' "$SHA" "$NAME" > "$ARCHIVE.sha256"
+echo "[$(date -Is)] 归档完成: $NAME (${SIZE} bytes, sha256 ${SHA:0:16}…)"
+
+# 本地只留最近 2 份
+ls -1t "$BACKUP_SPOOL_DIR"/ring-*.tar.gz.gpg 2>/dev/null | tail -n +3 | while read -r old; do
+  echo "  清理本地旧归档: $(basename "$old")"
+  rm -f "$old" "$old.sha256"
+done
+
+if [ -z "$DAV_BASE" ]; then
+  echo "[$(date -Is)] DAV_BASE 为空，跳过上传"
+  exit 0
+fi
+
+BASE_URI="${DAV_BASE%/}"
+REMOTE="$BASE_URI/$NAME"
+AUTH=()
+[ -n "$DAV_USER" ] && AUTH=(-u "$DAV_USER:$DAV_PASS")
+
+echo "[$(date -Is)] 上传: $REMOTE"
+code="$(curl -sS -o /dev/null -w '%{http_code}' "${AUTH[@]}" -T "$ARCHIVE" \
+  -H 'Expect:' --max-time 1800 "$REMOTE" || true)"
+case "$code" in
+  200|201|204) echo "  上传成功 ($code)" ;;
+  *) echo "  上传失败，HTTP $code" >&2; exit 1 ;;
+esac
+
+# 远端保留策略：列出目录，按文件名时间戳删除超出 BACKUP_KEEP 的归档
+LIST="$(curl -sS "${AUTH[@]}" -X PROPFIND -H 'Depth: 1' --max-time 300 "$BASE_URI/" || true)"
+if [ -n "$LIST" ]; then
+  python3 - "$BACKUP_KEEP" "$BASE_URI" <<'PY' <<<"$LIST" || echo "  远端保留检查跳过"
+import sys, re, subprocess
+keep = int(sys.argv[1]); base = sys.argv[2].rstrip("/")
+xml = sys.stdin.read()
+names = re.findall(r"<d:href>([^<]+)</d:href>", xml) or re.findall(r"<href>([^<]+)</href>", xml)
+archives = sorted(n for n in names if re.search(r"ring-\d{8}T\d{6}Z\.tar\.gz\.gpg$", n))
+for n in archives[:-keep] if len(archives) > keep else []:
+    url = n if n.startswith("http") else base + "/" + n.lstrip("/").rsplit("/", 1)[-1]
+    print("  删除远端旧归档:", url)
+    subprocess.run(["curl", "-sS", "-o", "/dev/null", "-X", "DELETE", "--max-time", "120", url], check=False)
+PY
+fi
+
+echo "[$(date -Is)] 备份完成"

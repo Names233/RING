@@ -1,0 +1,24 @@
+---
+- name: reload systemd
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+- name: restart openviking
+  ansible.builtin.systemd_service:
+    name: ring-openviking
+    state: restarted
+
+- name: restart maibot
+  ansible.builtin.systemd_service:
+    name: ring-maibot
+    state: restarted
+
+- name: restart ring-cloud
+  ansible.builtin.systemd_service:
+    name: ring-cloud
+    state: restarted
+
+- name: reload caddy
+  ansible.builtin.systemd_service:
+    name: caddy
+    state: reloaded

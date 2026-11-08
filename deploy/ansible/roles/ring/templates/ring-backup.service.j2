@@ -1,0 +1,12 @@
+[Unit]
+Description=RING nightly backup (tar + gpg + WebDAV)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+EnvironmentFile={{ ring_base }}/backup/backup.env
+ExecStart={{ ring_base }}/backup/bin/ring-backup.sh
+Nice=10
+IOSchedulingClass=idle

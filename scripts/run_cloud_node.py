@@ -20,6 +20,8 @@ async def main() -> None:
     openviking_port = int(os.environ.get("OPENVIKING_PORT", "18080"))
     persona_port = int(os.environ.get("PERSONA_PORT", "18081"))
     router_port = int(os.environ.get("ROUTER_PORT", "18082"))
+    # 容器内需要监听 0.0.0.0；默认保持与生产一致的回环地址。
+    bind_host = os.environ.get("RING_BIND_HOST", "127.0.0.1")
 
     os.environ.setdefault("OPENVIKING_URL", f"http://127.0.0.1:{openviking_port}")
     os.environ.setdefault("PERSONA_PROVIDER_URL", f"http://127.0.0.1:{persona_port}")
@@ -34,9 +36,9 @@ async def main() -> None:
         secret_token=os.environ.get("HEARTBEAT_SECRET_TOKEN")
     )
 
-    ov_config = uvicorn.Config(openviking_app, host="127.0.0.1", port=openviking_port, log_level="info")
-    persona_config = uvicorn.Config(persona_app, host="127.0.0.1", port=persona_port, log_level="info")
-    router_config = uvicorn.Config(router_app, host="127.0.0.1", port=router_port, log_level="info")
+    ov_config = uvicorn.Config(openviking_app, host=bind_host, port=openviking_port, log_level="info")
+    persona_config = uvicorn.Config(persona_app, host=bind_host, port=persona_port, log_level="info")
+    router_config = uvicorn.Config(router_app, host=bind_host, port=router_port, log_level="info")
 
     ov_server = uvicorn.Server(ov_config)
     persona_server = uvicorn.Server(persona_config)

@@ -1,0 +1,64 @@
+---
+# 用户、目录、uv（Python 工具链）
+- name: 创建 ring 系统用户
+  ansible.builtin.user:
+    name: "{{ ring_user }}"
+    group: "{{ ring_group }}"
+    system: false
+    shell: /bin/bash
+    create_home: true
+    state: present
+
+- name: 创建 RING 目录树
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ring_user }}"
+    group: "{{ ring_group }}"
+    mode: "{{ item_mode }}"
+  loop:
+    - "{{ ring_base }}"
+    - "{{ ring_base }}/app"
+    - "{{ ring_base }}/data"
+    - "{{ ring_base }}/data/openviking"
+    - "{{ ring_base }}/data/openviking/workspace"
+    - "{{ ring_base }}/data/openviking/records"
+    - "{{ ring_base }}/maibot"
+    - "{{ ring_base }}/toolenv"
+    - "{{ ring_base }}/tools"
+    - "{{ ring_base }}/backup"
+    - "{{ ring_base }}/napcat/config"
+    - "{{ ring_base }}/napcat/qq"
+  vars:
+    item_mode: "0750"
+
+- name: 下载 uv 安装脚本
+  ansible.builtin.get_url:
+    url: https://astral.sh/uv/install.sh
+    dest: /tmp/uv-install.sh
+    mode: "0755"
+
+- name: 安装 uv 到 {{ ring_base }}/bin
+  ansible.builtin.command:
+    cmd: env UV_INSTALL_DIR={{ ring_base }}/bin UV_NO_MODIFY_PATH=1 sh /tmp/uv-install.sh
+    creates: "{{ ring_base }}/bin/uv"
+
+- name: 固定 uv 版本
+  ansible.builtin.command:
+    cmd: "{{ ring_base }}/bin/uv self update {{ uv_version }}"
+  register: uv_self_update
+  changed_when: uv_self_update.rc == 0 and 'Upgraded' in uv_self_update.stdout
+  failed_when: false
+
+- name: 创建项目 venv
+  ansible.builtin.command:
+    cmd: "{{ ring_base }}/bin/uv venv {{ ring_base }}/.venv --python {{ ring_python }}"
+    creates: "{{ ring_base }}/.venv/bin/python"
+
+- name: venv 属主
+  ansible.builtin.file:
+    path: "{{ ring_base }}/.venv"
+    state: directory
+    owner: "{{ ring_user }}"
+    group: "{{ ring_group }}"
+    recurse: true

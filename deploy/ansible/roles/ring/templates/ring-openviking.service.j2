@@ -1,0 +1,23 @@
+[Unit]
+Description=RING OpenViking memory server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{ ring_user }}
+Group={{ ring_group }}
+WorkingDirectory={{ ring_base }}
+Environment=TZ={{ backup_timezone }}
+ExecStart={{ uv_bin_dir }}/openviking-server --host {{ ring_bind_host }} --port {{ openviking_port }} --config {{ ring_base }}/data/openviking/ov.conf
+Restart=on-failure
+RestartSec=5
+MemoryMax={{ openviking_memory_max }}
+MemorySwapMax={{ openviking_memory_swap_max }}
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths={{ ring_base }}/data
+
+[Install]
+WantedBy=multi-user.target

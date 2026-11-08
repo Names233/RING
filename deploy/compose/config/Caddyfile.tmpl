@@ -1,0 +1,42 @@
+# RING Caddy 站点模板（由 ring-init.sh 复制到 ${RING_DATA_DIR}/caddy/Caddyfile）
+#
+# 环境变量（compose edge profile 注入）：
+#   OV_DOMAIN / MB_DOMAIN  两个域名，需提前把 A/AAAA 记录指向本机
+#   ACME_EMAIL             Let's Encrypt 通知邮箱（可选，建议填写）
+#
+# 说明：OpenViking 与 MaiBot WebUI 都只监听容器内网，公网入口只有这里。
+# 生产环境里 NapCat WebUI(6099) 不对外暴露，扫码登录请走 SSH 隧道：
+#   ssh -L 6099:127.0.0.1:6099 user@host
+
+{
+	admin 127.0.0.1:2019
+	# email {$ACME_EMAIL}
+}
+
+(ring_security) {
+	header {
+		Strict-Transport-Security "max-age=31536000;"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+}
+
+{$OV_DOMAIN} {
+	import ring_security
+	encode zstd gzip
+	reverse_proxy openviking:1933
+}
+
+{$MB_DOMAIN} {
+	import ring_security
+	encode zstd gzip
+	# WebUI 默认没有登录墙，强烈建议开启 basic_auth：
+	#   1) docker run --rm caddy:2-alpine caddy hash-password --plaintext '你的密码'
+	#   2) 取消下面三行注释并填入用户名与哈希
+	# basic_auth {
+	# 	ring <bcrypt-hash>
+	# }
+	reverse_proxy maibot:8001
+}

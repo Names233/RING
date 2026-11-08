@@ -1,0 +1,35 @@
+# syntax=docker/dockerfile:1
+#
+# ring-cloud：一个进程内起三个 FastAPI 服务
+#   openviking_service :18080 / persona_plan_b :18081 / ring_router :18082
+FROM python:3.13-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    TZ=Asia/Shanghai
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates tzdata \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY deploy/compose/requirements-runtime.txt /app/requirements-runtime.txt
+RUN pip install -r /app/requirements-runtime.txt
+
+# 只拷贝运行期需要的包与脚本（不拷贝测试、评估集、deploy）
+COPY ring_common /app/ring_common
+COPY ring_router /app/ring_router
+COPY persona_plan_b /app/persona_plan_b
+COPY openviking_service /app/openviking_service
+COPY scripts/run_cloud_node.py /app/scripts/run_cloud_node.py
+COPY scripts/__init__.py /app/scripts/__init__.py
+COPY schemas /app/schemas
+
+RUN mkdir -p /data/openviking/records
+
+EXPOSE 18080 18081 18082
+
+ENTRYPOINT ["python", "scripts/run_cloud_node.py"]

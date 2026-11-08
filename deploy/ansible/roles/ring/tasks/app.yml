@@ -1,0 +1,44 @@
+---
+- name: 检出 RING 代码（{{ ring_repo_version }}）
+  ansible.builtin.git:
+    repo: "{{ ring_repo_url }}"
+    dest: "{{ ring_base }}/app"
+    version: "{{ ring_repo_version }}"
+    force: true
+    depth: 1
+  become: true
+  become_user: "{{ ring_user }}"
+
+- name: 安装运行期 Python 依赖
+  ansible.builtin.command:
+    cmd: >-
+      {{ ring_base }}/bin/uv pip install --python {{ ring_base }}/.venv/bin/python
+      -r {{ ring_base }}/app/deploy/compose/requirements-runtime.txt
+  register: uv_pip
+  changed_when: "'Audited' not in uv_pip.stdout and 'Prepared' not in uv_pip.stdout"
+
+- name: 查询 uv tool 可执行文件目录
+  ansible.builtin.command:
+    cmd: "{{ ring_base }}/bin/uv tool dir --bin"
+  register: uv_bin_raw
+  changed_when: false
+
+- name: 记录 uv_bin_dir
+  ansible.builtin.set_fact:
+    uv_bin_dir: "{{ uv_bin_raw.stdout | trim }}"
+
+- name: 安装 openviking（{{ openviking_version }}）
+  ansible.builtin.command:
+    cmd: >-
+      {{ ring_base }}/bin/uv tool install openviking=={{ openviking_version }}
+      --python {{ ring_python }} --tool-dir {{ ring_base }}/toolenv --force
+  register: ov_tool_install
+  changed_when: "'Installed' in ov_tool_install.stdout"
+
+- name: 安装 maibot（{{ maibot_version }}）
+  ansible.builtin.command:
+    cmd: >-
+      {{ ring_base }}/bin/uv tool install maibot=={{ maibot_version }}
+      --python {{ ring_python }} --tool-dir {{ ring_base }}/toolenv --force
+  register: mb_tool_install
+  changed_when: "'Installed' in mb_tool_install.stdout"

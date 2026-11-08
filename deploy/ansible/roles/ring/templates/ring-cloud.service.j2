@@ -1,0 +1,37 @@
+[Unit]
+Description=RING cloud node (openviking_service + persona_plan_b + ring_router)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{ ring_user }}
+Group={{ ring_group }}
+WorkingDirectory={{ ring_base }}/app
+Environment=TZ={{ backup_timezone }}
+Environment=RING_BIND_HOST={{ ring_bind_host }}
+Environment=OPENVIKING_DATA_DIR={{ ring_base }}/data/openviking
+Environment=OPENVIKING_PORT={{ openviking_service_port }}
+Environment=PERSONA_PORT={{ persona_port }}
+Environment=ROUTER_PORT={{ router_port }}
+Environment=OPENVIKING_URL=http://127.0.0.1:{{ openviking_port }}
+Environment=HEARTBEAT_SECRET_TOKEN={{ heartbeat_secret_token }}
+Environment=AGT_BASE_URL={{ agt_base_url }}
+Environment=AGT_API_KEY={{ agt_api_key }}
+Environment=AGT_MODEL={{ agt_model }}
+Environment=AGT_TIMEOUT_SECONDS={{ agt_timeout_seconds }}
+Environment=RING_OFFLINE_MODE={{ ring_offline_mode }}
+Environment=ACP_BRIDGE_URL={{ acp_bridge_url }}
+Environment=AIRI_EMBODIMENT_URL={{ airi_embodiment_url }}
+ExecStart={{ ring_base }}/.venv/bin/python {{ ring_base }}/app/scripts/run_cloud_node.py
+Restart=on-failure
+RestartSec=5
+MemoryMax={{ ring_cloud_memory_max }}
+CPUQuota={{ ring_cloud_cpu_quota }}
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths={{ ring_base }}/data
+
+[Install]
+WantedBy=multi-user.target

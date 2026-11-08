@@ -18,3 +18,12 @@ logs/
 # 备份产物与临时目录
 backup/
 /tmp/
+
+# 部署产物（Compose / Ansible）：真实密钥与运行数据禁止入库
+deploy/compose/.env
+deploy/compose/data/
+deploy/compose/restore/
+deploy/ansible/inventory.ini
+deploy/ansible/group_vars/all.yml
+deploy/ansible/*.retry
+deploy/compose/*.log

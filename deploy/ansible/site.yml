@@ -1,0 +1,44 @@
+# RING 裸机部署（Ansible 路径，贴近当前生产形态）
+#
+# 前置：控制机安装 ansible-core >= 2.16
+#   python -m pip install "ansible-core>=2.16"
+#
+# 使用：
+#   cp inventory.example.ini inventory.ini          # 填 host
+#   cp group_vars/all.example.yml group_vars/all.yml # 填密钥（建议 ansible-vault）
+#   ansible-playbook --syntax-check site.yml
+#   ansible-playbook site.yml --check --diff         # 预演
+#   ansible-playbook site.yml                        # 真跑
+#   ansible-playbook site.yml --tags backup          # 只重装备份定时器
+---
+- name: 部署 RING（systemd + uv tool + NapCat 容器 + Caddy）
+  hosts: ring
+  become: true
+  gather_facts: true
+  any_errors_fatal: true
+
+  pre_tasks:
+    - name: 校验目标系统
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution in ["Debian", "Ubuntu"]
+          - ansible_distribution_major_version | int >= 12
+        fail_msg: "仅支持 Debian 12+ / Ubuntu 22.04+，当前 {{ ansible_distribution }} {{ ansible_distribution_version }}"
+        quiet: true
+
+    - name: 校验必填密钥未留占位符
+      ansible.builtin.assert:
+        that:
+          - ov_root_api_key | length > 8
+          - ov_root_api_key != "CHANGE_ME"
+          - heartbeat_secret_token != "CHANGE_ME"
+        fail_msg: "请先在 group_vars/all.yml 填入 ov_root_api_key / heartbeat_secret_token 等密钥"
+        quiet: true
+
+  roles:
+    - role: uv
+      tags: [uv, base]
+    - role: docker
+      tags: [docker]
+    - role: ring
+      tags: [ring]

@@ -1,0 +1,23 @@
+---
+- name: 渲染 ov.conf
+  ansible.builtin.template:
+    src: ov.conf.j2
+    dest: "{{ ring_base }}/data/openviking/ov.conf"
+    owner: "{{ ring_user }}"
+    group: "{{ ring_group }}"
+    mode: "0600"
+  notify: restart openviking
+
+- name: 部署 ring-openviking.service
+  ansible.builtin.template:
+    src: ring-openviking.service.j2
+    dest: /etc/systemd/system/ring-openviking.service
+    mode: "0644"
+  notify: [reload systemd, restart openviking]
+
+- name: 启动 ring-openviking
+  ansible.builtin.systemd_service:
+    name: ring-openviking
+    enabled: true
+    state: started
+    daemon_reload: true

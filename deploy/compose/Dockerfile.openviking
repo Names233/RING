@@ -1,0 +1,29 @@
+# syntax=docker/dockerfile:1
+#
+# OpenViking 0.5.3 记忆库（上游 AGPL-3.0，未做任何代码修改）
+FROM python:3.13-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    TZ=Asia/Shanghai
+
+ARG OPENVIKING_VERSION=0.5.3
+
+# cairosvg / 文档解析链路需要的系统库；curl 便于人工进容器排查
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      ca-certificates tzdata curl \
+      libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 shared-mime-info \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN pip install "openviking==${OPENVIKING_VERSION}"
+
+RUN mkdir -p /data/workspace
+WORKDIR /data
+
+EXPOSE 1933
+
+ENTRYPOINT ["openviking-server"]
+CMD ["--host", "0.0.0.0", "--port", "1933", "--config", "/data/ov.conf"]

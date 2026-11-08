@@ -111,6 +111,8 @@ OpenViking (记忆, 1933) ── 各 Agent 以 MCP/Agent Plugins 直连
 - [云地混合冗余与高可用设计](./docs/HYBRID_REDUNDANCY_DESIGN.md)
 - [MaiBot 集成研究](./docs/MAIBOT_INTEGRATION_STUDY.md)
 - [方案审计报告与缺陷清单](./docs/ARCHITECTURE_AUDIT_AND_DEFECTS_2026.md)
+- [部署手册（Compose / Ansible 两条路径）](./docs/DEPLOYMENT.md)
+- [部署目录说明与选型（deploy/）](./deploy/README.md)
 - [评估集说明与运行方式](./evals/README.md)
 - [ACP Bridge 运行说明](./acp-bridge/README.md)
 - [Persona judge prompt](./evals/persona/judge_prompt.md)

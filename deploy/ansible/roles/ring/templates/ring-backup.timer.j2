@@ -1,0 +1,10 @@
+[Unit]
+Description=RING nightly backup timer
+
+[Timer]
+OnCalendar={{ backup_oncalendar }}
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target

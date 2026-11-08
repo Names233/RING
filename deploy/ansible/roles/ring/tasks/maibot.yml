@@ -1,0 +1,61 @@
+---
+- name: 检查 MaiBot 是否已初始化
+  ansible.builtin.stat:
+    path: "{{ ring_base }}/maibot/config/bot_config.toml"
+  register: maibot_config
+
+- name: 首次初始化 MaiBot 配置
+  ansible.builtin.command:
+    cmd: "{{ uv_bin_dir }}/maibot init --directory {{ ring_base }}/maibot"
+    creates: "{{ ring_base }}/maibot/config/bot_config.toml"
+  become: true
+  become_user: "{{ ring_user }}"
+  environment:
+    UV_TOOL_DIR: "{{ ring_base }}/toolenv"
+
+- name: 查询 MaiBot 的 site-packages
+  ansible.builtin.command:
+    cmd: >-
+      {{ ring_base }}/toolenv/maibot/bin/python -c
+      "import site; print(site.getsitepackages()[0])"
+  register: maibot_site_packages
+  changed_when: false
+
+- name: 应用 OpenViking 补丁（幂等）
+  ansible.builtin.command:
+    argv:
+      - "{{ ring_python }}"
+      - "{{ ring_base }}/app/patches/maibot-openviking/install.py"
+      - "--apply"
+      - "--site-packages"
+      - "{{ maibot_site_packages.stdout | trim }}"
+      - "--mai-root"
+      - "{{ ring_base }}/maibot"
+      - "--no-diff"
+  become: true
+  become_user: "{{ ring_user }}"
+  register: maibot_patch
+  changed_when: false   # install.py 自身幂等，重复执行为 no-op
+  notify: restart maibot
+
+- name: 安装 QQ 适配器插件（可选，仓库外）
+  ansible.builtin.synchronize:
+    src: "{{ snowluma_adapter_src }}/"
+    dest: "{{ ring_base }}/maibot/plugins/maibot-team_snowluma-adapter/"
+    delete: false
+  when: snowluma_adapter_src | length > 0
+  notify: restart maibot
+
+- name: 部署 ring-maibot.service
+  ansible.builtin.template:
+    src: ring-maibot.service.j2
+    dest: /etc/systemd/system/ring-maibot.service
+    mode: "0644"
+  notify: [reload systemd, restart maibot]
+
+- name: 启动 ring-maibot
+  ansible.builtin.systemd_service:
+    name: ring-maibot
+    enabled: true
+    state: started
+    daemon_reload: true

@@ -1,0 +1,43 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 1933,
+    "workers": 1,
+    "root_api_key": "__OV_ROOT_API_KEY__"
+  },
+  "storage": {
+    "workspace": "/data/workspace"
+  },
+  "embedding": {
+    "dense": {
+      "provider": "openai",
+      "model": "__OV_EMBEDDING_MODEL__",
+      "api_key": "__OV_EMBEDDING_API_KEY__",
+      "api_base": "__OV_EMBEDDING_API_BASE__",
+      "dimension": __OV_EMBEDDING_DIMENSION__,
+      "input": "text",
+      "encoding_format": "float",
+      "batch_size": 32
+    },
+    "max_concurrent": 4,
+    "max_retries": 3
+  },
+  "rerank": {
+    "provider": "openai",
+    "api_key": "__OV_RERANK_API_KEY__",
+    "api_base": "__OV_RERANK_API_BASE__",
+    "model": "__OV_RERANK_MODEL__",
+    "threshold": __OV_RERANK_THRESHOLD__,
+    "timeout": 30.0
+  },
+  "vlm": {
+    "provider": "openai",
+    "model": "__OV_VLM_MODEL__",
+    "api_key": "__OV_VLM_API_KEY__",
+    "api_base": "__OV_VLM_API_BASE__",
+    "temperature": __OV_VLM_TEMPERATURE__,
+    "timeout": 300.0,
+    "max_tokens": __OV_VLM_MAX_TOKENS__,
+    "max_retries": 2
+  }
+}
