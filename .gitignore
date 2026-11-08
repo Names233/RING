@@ -15,8 +15,8 @@ logs/
 *.db
 *.sqlite3
 
-# 备份产物与临时目录
-backup/
+# 备份产物与临时目录（只忽略仓库根，deploy/backup/ 是随仓库分发的脚本）
+/backup/
 /tmp/
 
 # 部署产物（Compose / Ansible）：真实密钥与运行数据禁止入库
