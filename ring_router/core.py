@@ -1,13 +1,13 @@
-"""Deterministic routing engine for the AstrBot thin router.
+"""Deterministic routing engine for the RING first-level router.
 
-This is the offline/degraded-path implementation of
-docs/ASTRBOT_ROUTER_DESIGN.md. The LLM intent classifier (intent-router
+This is the offline/degraded-path implementation of the RING router
+design document. The LLM intent classifier (intent-router
 through LiteLLM) is the primary path; this module is its deterministic
 fallback and CI regression baseline.
 
 Design invariants:
 
-- AstrBot does not execute tasks; it only picks a downstream target.
+- The router does not execute tasks; it only picks a downstream target.
 - Persona consistency beats routing precision: low confidence falls back
   to ``chat``.
 - Explicit trigger words outrank model classification and can bypass the
@@ -188,7 +188,7 @@ def classify_with_agt(
                     {
                         "role": "system",
                         "content": (
-                            'You are the AstrBot first-level intent router. '
+                            'You are the RING first-level intent router. '
                             'Classify the user message into route in ["chat", "tech", "embodiment"] '
                             'with confidence in [0.0, 1.0] and reason. '
                             'Output ONLY valid JSON: {"route": "chat"|"tech"|"embodiment", "confidence": 0.9, "reason": "..."}'

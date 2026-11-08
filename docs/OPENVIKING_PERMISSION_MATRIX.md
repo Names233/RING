@@ -32,7 +32,7 @@ OpenViking 是所有 Agent 的记忆与知识总线。权限规则：**写隔离
 
 | Agent | `resources/` | `memories/users/` | `memories/agents/{self}/` | `memories/agents/{other}/` | `memories/shared/` | `skills/` |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
-| AstrBot | R | R/W | R/W (`astrbot/`) | R | R | R |
+| ring_router | R | R/W | R/W (`ring_router/`) | R | R | R |
 | MaiBot | R | R/W | R/W (`maibot/`) | R | R | R |
 | AIRI | R | R | R/W (`airi/`) | R | R | R |
 | dsh | R | R | R/W (`dsh/`) | R | W | R/W |
@@ -41,7 +41,7 @@ OpenViking 是所有 Agent 的记忆与知识总线。权限规则：**写隔离
 ## 3. 规则
 
 1. **P-01 写隔离**：Agent 只能写 `memories/agents/{self}/`，禁止写其他 Agent 目录。
-2. **P-02 用户画像双写者**：`memories/users/` 仅 AstrBot 与 Persona Provider 可写；AstrBot 写平台事实（昵称、群角色），Persona Provider 写表达学习成果。
+2. **P-02 用户画像双写者**：`memories/users/` 仅入口层（MaiBot，经注入钩子）与 Persona Provider 可写；MaiBot 写平台事实（昵称、群角色），Persona Provider 写表达学习成果。ring_router 只做路由，不写画像。
 3. **P-03 技能沉淀**：任务工作流由 dsh 写入 `skills/`，格式为 Markdown + front matter，供所有 Agent 复用。
 4. **P-04 共享记忆管理员制**：`memories/shared/` 不允许 Agent 自动写入，防止共享区被污染。
 5. **P-05 Bridge 只读**：ACP↔A2A bridge 仅读取资源用于上下文，不产生记忆。

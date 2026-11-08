@@ -1,0 +1,17 @@
+--- a/src/runtime.py
++++ b/src/runtime.py
+@@ -531,6 +531,14 @@
+             initialize_task = loop.create_task(main_system.initialize())
+             _set_active_main_task(initialize_task)
+             _run_until_complete(loop, initialize_task)
++            # 启动 OpenViking 长期记忆写入后台任务；失败不影响主流程
++            try:
++                from src.maisaka.memory.openviking_writer import openviking_memory_writer
++
++                _start_writer = loop.create_task(openviking_memory_writer.ensure_started())
++                _run_until_complete(loop, _start_writer)
++            except Exception as _writer_exc:
++                logger.warning(f"OpenViking 写入任务启动失败: {_writer_exc}")
+             main_tasks = loop.create_task(main_system.schedule_tasks())
+             _set_active_main_task(main_tasks)
+             _run_until_complete(loop, main_tasks)

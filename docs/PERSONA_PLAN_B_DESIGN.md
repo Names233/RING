@@ -1,6 +1,8 @@
 # Persona Provider Plan B 设计
 
-Plan B 是 MaiBot 的替代实现：**小模型触发判断 + 主模型人格生成**。两者均实现同一 Persona Provider A2A 契约（见 `PERSONA_PROVIDER_CONTRACT.md`），测试集与 eval 完全复用。
+Plan B 是一套**可切换的灵魂实现**：**小模型触发判断 + 主模型人格生成**。它实现 Persona Provider A2A 契约（见 `PERSONA_PROVIDER_CONTRACT.md`），与 MaiBot 内置人格共用同一套测试集与 eval。
+
+> 定位澄清（2026-11-08）：MaiBot 已是系统唯一入口与默认对话主体（见 `MAIBOT_INTEGRATION_STUDY.md`），Plan B 不再是"替代 MaiBot 的计划"，而是"当 MaiBot 的内置人格不满足需要时的可切换灵魂实现"。当前生产环境**运行 MaiBot 内置人格**，Plan B 处于原型与评估就绪状态，未承接真实流量。
 
 ## 1. 动机
 
@@ -11,7 +13,7 @@ Plan B 是 MaiBot 的替代实现：**小模型触发判断 + 主模型人格生
 ## 2. 架构
 
 ```text
-AstrBot (A2A)
+ring_router (A2A)
   ↓
 Plan B Persona Provider
   ├─ Stage 1: 触发判断 (persona-trigger, 1B 本地模型)

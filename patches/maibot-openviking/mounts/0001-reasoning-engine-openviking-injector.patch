@@ -1,0 +1,53 @@
+--- a/src/maisaka/reasoning_engine.py
++++ b/src/maisaka/reasoning_engine.py
+@@ -82,6 +82,7 @@
+     extract_jargon_reference_contents,
+ )
+ from src.maisaka.memory.heuristic_injector import heuristic_memory_injector
++from src.maisaka.memory.openviking_injector import openviking_memory_injector
+ from src.maisaka.memory.image_injector import image_memory_injector
+ from src.maisaka.monitor.tool_media import build_tool_result_images
+ from src.maisaka.context.compaction import ContextSummaryMessage, build_context_summary
+@@ -320,9 +321,18 @@
+                 logger.debug(f"{self._runtime.log_prefix} 图片记忆自然拉起失败，已跳过: {exc}")
+                 return ""
+ 
+-        pending = {"启发式记忆", "人物画像", "图片记忆"}
++        async def build_openviking_memory_message() -> str:
++            try:
++                return await openviking_memory_injector.build_injection_message(
++                    session_id=str(self._runtime.session_id or ""),
++                )
++            except Exception as exc:
++                logger.debug(f"{self._runtime.log_prefix} OpenViking 记忆拉起失败，已跳过: {exc}")
++                return ""
++
++        pending = {"启发式记忆", "人物画像", "图片记忆", "OpenViking记忆"}
+         if round_text is not None:
+-            self._runtime._update_stage_status("组织上下文", "正在准备：启发式记忆、人物画像、图片记忆", round_text=round_text)
++            self._runtime._update_stage_status("组织上下文", "正在准备：启发式记忆、OpenViking记忆、人物画像、图片记忆", round_text=round_text)
+ 
+         async def measure_injection(name: str, build: Callable[[], Awaitable[Any]]) -> Any:
+             started = time.perf_counter()
+@@ -333,16 +343,19 @@
+                 pending.discard(name)
+                 logger.info(f"{self._runtime.log_prefix} 上下文准备: {name} 耗时={elapsed:.2f}s")
+                 if pending and round_text is not None:
+-                    remaining = "、".join(item for item in ("启发式记忆", "人物画像", "图片记忆") if item in pending)
++                    remaining = "、".join(item for item in ("启发式记忆", "OpenViking记忆", "人物画像", "图片记忆") if item in pending)
+                     self._runtime._update_stage_status("组织上下文", f"正在等待：{remaining}", round_text=round_text)
+ 
+-        heuristic_memory_message, profile_messages, image_memory_message = await asyncio.gather(
++        heuristic_memory_message, profile_messages, image_memory_message, openviking_memory_message = await asyncio.gather(
+             measure_injection("启发式记忆", build_heuristic_memory_message),
+             measure_injection("人物画像", build_profile_messages),
+             measure_injection("图片记忆", build_image_memory_message),
++            measure_injection("OpenViking记忆", build_openviking_memory_message),
+         )
+         if heuristic_memory_message:
+             injected_messages.append(heuristic_memory_message)
++        if openviking_memory_message:
++            injected_messages.append(openviking_memory_message)
+         injected_messages.extend(profile_messages)
+         if image_memory_message:
+             injected_messages.append(image_memory_message)

@@ -7,7 +7,10 @@
 ## 1. 边界与原则
 
 ```text
-AstrBot ──A2A HTTP──► ACP Bridge ──ACP JSON-RPC──► dsh
+ring_router ──A2A HTTP──► ACP Bridge ──ACP JSON-RPC──► dsh
+   ▲
+   │ /route（HTTP）
+MaiBot（唯一入口）
 ```
 
 Bridge 是无状态协议翻译层，遵循四条不变量：
@@ -119,13 +122,13 @@ session/prompt
 
 | 来源 | ACP/RPC error | A2A 映射 | HTTP |
 |---|---|---|---|
-| AstrBot 请求 | 缺少 text part | task `failed` + error `invalid_input` | 200 |
+| ring_router 请求 | 缺少 text part | task `failed` + error `invalid_input` | 200 |
 | ACP 握手 | `initialize` 错误 | task `failed` + error `acp_handshake_failed` | 200 |
 | 会话创建 | `session/new` 错误 | task `failed` + error `acp_session_failed` | 200 |
 | 执行 | `session/prompt` 错误 | task `failed` + error `acp_prompt_failed` | 200 |
 | Bridge 内部 | 未捕获异常 | task `failed` + error `internal_error` | 200 |
 
-设计理由：上游 AstrBot 依赖 A2A task 状态做重试与追踪；把协议错误伪装成 HTTP 500 会破坏其状态机。
+设计理由：上游 ring_router 依赖 A2A task 状态做重试与追踪；把协议错误伪装成 HTTP 500 会破坏其状态机。
 
 > 偏差：实现只返回 `status.message`，没有返回上表的 error code 字段；`invalid_input` 由 pydantic 校验返回 HTTP 422，而非 task failed。
 

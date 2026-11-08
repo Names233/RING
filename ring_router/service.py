@@ -89,14 +89,14 @@ def create_app(
     secret_token: str | None = None,
     agt_client: AGTClient | None = None,
 ) -> FastAPI:
-    app = FastAPI(title="astrbot-router", version="0.1.0")
+    app = FastAPI(title="ring-router", version="0.1.0")
     registry = HeartbeatRegistry(timeout_seconds=timeout_seconds, secret_token=secret_token)
 
     @app.get("/health")
     def health() -> dict[str, Any]:
         return {
             "status": "ok",
-            "service": "astrbot-router",
+            "service": "ring-router",
             **registry.get_mode_status(),
         }
 
@@ -195,7 +195,7 @@ def create_app(
                         r = await client.post(
                             f"{openviking_url}/recall",
                             json={
-                                "agent_id": "astrbot",
+                                "agent_id": "ring_router",
                                 "query": req.text,
                                 "namespaces": [f"viking://memories/users/{req.user_id}"],
                                 "max_level": "L1",

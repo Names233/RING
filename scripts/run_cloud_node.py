@@ -8,7 +8,7 @@ ACP_BRIDGE_DIR = REPO_ROOT / "acp-bridge"
 sys.path.extend([str(REPO_ROOT), str(ACP_BRIDGE_DIR)])
 
 import uvicorn
-import astrbot_router.service
+import ring_router.service
 import openviking_service.service
 import persona_plan_b.service
 
@@ -30,7 +30,7 @@ async def main() -> None:
         storage_root=openviking_data_dir
     )
     persona_app = persona_plan_b.service.create_app()
-    router_app = astrbot_router.service.create_app(
+    router_app = ring_router.service.create_app(
         secret_token=os.environ.get("HEARTBEAT_SECRET_TOKEN")
     )
 

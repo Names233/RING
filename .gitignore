@@ -2,3 +2,19 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .venv/
+
+# 本地密钥与运行时数据（禁止入库）
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+data/
+logs/
+*.log
+*.db
+*.sqlite3
+
+# 备份产物与临时目录
+backup/
+/tmp/

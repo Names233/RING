@@ -1,6 +1,7 @@
 # 方案审计报告与缺陷清单 (2026-10)
 
-> 审计基线：AstrBot × MaiBot × AIRI × dsh × OpenViking 五合一架构 v3  
+> 审计基线：AstrBot × MaiBot × AIRI × dsh × OpenViking 五合一架构 v3（当时基线）  
+> 2026-11-08 决议：AstrBot 已从方案移除（容器停用并卸载），其职责由 MaiBot（入口与通道）与 ring_router（一级路由）承接。本报告保留历史对象与判定，涉及 AstrBot 的条目均标注该移除状态。  
 > 审计范围：系统架构文档、云地混合高可用设计、Persona Provider 契约与 Plan B 原型、MaiBot 替代调研报告、部署配置及自动化评估基线  
 > 审计原则：严格区分**已验证事实（Verified Facts）**、**技术推断（Inferences）**与**未实现假设（Unverified/Unknown）**
 
@@ -35,7 +36,7 @@
 - **P0-3**：云端“单一事实源”实为单 VPS 单 Docker Volume，无高可用与灾备机制
 - **P0-4**：Cloudflare Tunnel 点对点直连拓扑不存在（出站连接无法构成内网穿透直连）
 - **P1-1**：Persona Plan B 仅为静态离线原型，非可直接替换 MaiBot 的生产服务
-- **P1-2**：AstrBot 缺乏未经 @ 唤醒的主动群聊插话真实插件验证
+- **P1-2**：动态群聊插话（未经 @ 唤醒）缺乏真实验证（原判定对象 AstrBot 已移除，职责转移至 MaiBot）
 - **P1-3**：服务故障返回行为与 Persona Provider 契约（静默降级）直接冲突
 - **P1-4**：Plan B 默认触发器存在 JSON 语法 Bug，Prompt 拼接存在注入与贪婪解析风险
 - **P1-5**：OpenViking 权限矩阵与契约责任倒错（无状态服务持写权限，逻辑路径未落地）
@@ -103,12 +104,13 @@
 - **受影响位置**：`persona_plan_b/service.py`；`docs/PERSONA_PLAN_B_DESIGN.md`
 - **分析**：`service.py` 中默认绑定的 `default_trigger_model` 与 `default_chat_model` 是静态关键词匹配（如仅判断消息是否包含“@”或“累/想你”），返回写死的固定文本。服务未接入 LiteLLM API、未对接 OpenViking 记忆召回接口，无鉴权、无超时中断机制、无并发背压。将其宣称为“生产可用并可替代 MaiBot 容器”属于严重超前断言。
 - **整改建议**：明确标记 `persona_plan_b` 为原型（Prototype），在未完成 LiteLLM 真实异步调用前不得在生产 Compose 中替换原服务。
+- **2026-11-08 更新**：`persona_plan_b/service.py` 的 trigger/chat 模型已改为经 `ring_common.llm_client.AGTClient` 调用 AGT 网关（`gemini-3.8-flash`），"返回写死的固定文本"一条不再成立；OpenViking 真实召回、鉴权、并发背压仍未实现或未验证，原型定性不变。
 
-### P1-2：AstrBot 缺乏未 @ 唤醒的主动群聊插话真实验证
+### P1-2：动态群聊插话（未 @ 唤醒）缺乏真实验证
 
-- **受影响位置**：`astrbot_router/core.py`；`docs/ASTRBOT_ROUTER_DESIGN.md`
-- **分析**：AstrBot 核心管线的 `WakingCheckStage` 原生逻辑主要处理显式唤醒（@、昵称提及、前缀匹配等）。当前仓库中的 `astrbot_router` 仅为独立纯函数分类器，未包含实际运行在 AstrBot 插件运行时的 Hook 拦截逻辑。如何在不干扰常规指令的前提下实现群聊语义动态插话，尚未经过真实环境验证。
-- **整改建议**：编写符合 AstrBot 插件规约的真实插件包，针对消息事件广播、事件中断、二次重入做集成测试。
+- **受影响位置**：原 `astrbot_router/core.py`、原 `docs/ASTRBOT_ROUTER_DESIGN.md`（现为 `ring_router/core.py`、`docs/RING_ROUTER_DESIGN.md`）；现归属 MaiBot 侧
+- **分析**：原判定针对 AstrBot 核心管线的唤醒阶段（`WakingCheckStage`）——其原生逻辑主要处理显式唤醒（@、昵称提及、前缀匹配等），仓库内的 `astrbot_router` 只是独立纯函数分类器，未包含运行时的 Hook 拦截。**2026-11-08 起 AstrBot 已移除**，动态插话的判断职责转移至 MaiBot（其原生 Passive Triggering）；但该能力在 RING 场景下仍未验证：QQ 号当前不在任何群（仅 2 个好友），尚无群聊真实流量。
+- **整改建议**：先自建测试群，验证 MaiBot 的被动插话与 @ 唤醒行为，再评估是否需要 ring_router 侧的补充判定。
 
 ### P1-3：服务故障返回行为与契约直接冲突
 
@@ -128,7 +130,7 @@
 
 - **受影响位置**：`docs/OPENVIKING_PERMISSION_MATRIX.md` §1.1 vs `docs/PERSONA_PROVIDER_CONTRACT.md` §1
 - **分析**：契约 P3 条款严格限定 Persona Provider 为“无状态计算节点，严禁写 OpenViking”；但权限矩阵却赋予了 Persona Provider 对 `viking://memories/users/` 的 R/W（读写）权限。此外，文档中所列的 `viking://memories/...` 是未经真实映射的逻辑命名空间，OpenViking 物理存储层并未提供该层级自动路由。
-- **整改建议**：移除 Persona Provider 的写权限，将表达学习写入职责收敛由感知层（AstrBot）或后台定时结晶作业处理；补齐物理路径与逻辑命名空间映射层。
+- **整改建议**：移除 Persona Provider 的写权限，将表达学习写入职责收敛由入口层（MaiBot，经注入钩子）或后台定时结晶作业处理；补齐物理路径与逻辑命名空间映射层。
 
 ### P1-6：心跳机制缺乏凭证签名、租约单调性与脑裂防护
 
@@ -159,8 +161,8 @@
 
 ### P2-1：MaiBot 替代调研中的法律与性能断言缺乏实测依据
 
-- **受影响位置**：`docs/MAIBOT_REPLACEMENT_STUDY.md` §1, §2
-- **分析**：报告将 GPL-3.0 判定为对项目的“致命传染风险”。在微服务架构下，跨独立网络进程（A2A JSON-RPC）调用是否触发衍生作品传染属于法律合规议题，且 AstrBot 与 OpenViking 本身采用 AGPL-3.0 协议，单纯移除 MaiBot 并不改变系统的 Copyleft 约束性质。此外，报告宣称的“占用 300MB~500MB”与“现代大模型已完全超越 MaiBot 表达学习”缺乏基准测试（Benchmark）数据支撑。
+- **受影响位置**：`docs/MAIBOT_INTEGRATION_STUDY.md` §2（原 `docs/MAIBOT_REPLACEMENT_STUDY.md`，2026-11-08 更名）
+- **分析**：报告将 GPL-3.0 判定为对项目的“致命传染风险”。在微服务架构下，跨独立网络进程（A2A JSON-RPC）调用是否触发衍生作品传染属于法律合规议题，且当时方案中的感知层组件（AstrBot，已于 2026-11-08 移除）与 OpenViking 本身采用 AGPL-3.0 协议，单纯移除 MaiBot 并不改变系统的 Copyleft 约束性质。此外，报告宣称的“占用 300MB~500MB”与“现代大模型已完全超越 MaiBot 表达学习”缺乏基准测试（Benchmark）数据支撑。
 - **整改建议**：将法律定性修正为“降低单一依赖组件的许可证合规管理成本”，对内存与生成质量增加实际评测数据标注。
 
 ### P2-2：现有离线评测集属于构造自证
@@ -175,7 +177,7 @@
 ### P2-3：仓库缺少开源许可证 (LICENSE) 规约
 
 - **受影响位置**：仓库根目录
-- **分析**：项目汇聚了 MIT（dsh, AIRI）、GPL-3.0（MaiBot）及 AGPL-3.0（AstrBot, OpenViking）等生态，但仓库根目录尚未正式添加 `LICENSE` 文件，可能导致下游使用者产生版权与分发困惑。
+- **分析**：项目汇聚了 MIT（dsh, AIRI）、GPL-3.0（MaiBot）及 AGPL-3.0（AstrBot — 已于 2026-11-08 移除, OpenViking）等生态，但仓库根目录尚未正式添加 `LICENSE` 文件，可能导致下游使用者产生版权与分发困惑。
 - **整改建议**：补充统一开源许可声明与多组件分发边界指引。
 
 ---
@@ -197,7 +199,7 @@
 【Stage 2：接口闭环与安全加固】
   - 修正 Persona Plan B 异常静默降级（Fail-Closed）
   - 增加 Prompt 防注入隔离与非贪婪结构化 JSON 提取
-  - 编写 AstrBot 原生插件，实测未 @ 消息的感知唤醒管线
+  - 验证 MaiBot 的未 @ 消息感知唤醒管线（原计划为编写已移除组件 AstrBot 的原生插件）
   - 规范 OpenViking 权限职责（Provider 仅读，写权限收敛）
           │
           ▼
@@ -212,4 +214,4 @@
 
 1. **坚持接口隔离与平滑演进**：严格保持 `Persona Provider` 这一 A2A 标准协议边界，当前**继续保留 MaiBot 作为回滚底座**；
 2. **定位 Plan B 为内部兼容原型**：推进自研两段式流水线，但严禁在未接入真实大模型网关与通过端到端质量验证前强行移除现有底座；
-3. **暂缓方案 C 角色卡 RAG 膨胀**：在 AstrBot 原生主动消息拦截与触发决策机制彻底理顺之前，不引入更多额外的上下文检索组件。
+3. **暂缓方案 C 角色卡 RAG 膨胀**：在入口层（MaiBot）的主动消息拦截与触发决策机制彻底理顺之前，不引入更多额外的上下文检索组件（原表述针对已移除的 AstrBot）。

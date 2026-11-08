@@ -1,0 +1,128 @@
+--- a/transport.py
++++ b/transport.py
+@@ -10,6 +10,7 @@ import errno
+ import json
+ import re
+ import socket
++import time
+ 
+ from .config import QQServerConfig
+ from .profile import ProfileState
+@@ -37,6 +38,12 @@ except ImportError:
+ if not TYPE_CHECKING:
+     AiohttpClientWebSocketResponse = Any
+ 
++# 断连后按指数退避重连：attempt 每失败一次加一，指数最多放大 2**6 倍，总等待不超过 300 秒。
++RECONNECT_BACKOFF_EXPONENT_CAP = 6
++MAX_RECONNECT_DELAY_SEC = 300.0
++# 连续失败的完整警告在窗口内只输出一次，其余降级为 debug，避免 NapCat 未就绪时刷屏。
++FAILURE_LOG_THROTTLE_SEC = 300.0
++
+ 
+ class QQTransportClient:
+     """OneBot 正向 WebSocket 客户端。"""
+@@ -70,6 +77,9 @@ class QQTransportClient:
+         self._connection_active: bool = False
+         self._warned_missing_token_for_ws_url: Optional[str] = None
+         self._profile_state: Optional[ProfileState] = None
++        self._reconnect_attempt: int = 0
++        self._failure_log_monotonic: Optional[float] = None
++        self._failure_log_suppressed: int = 0
+ 
+     @classmethod
+     def is_available(cls) -> bool:
+@@ -209,16 +219,16 @@ class QQTransportClient:
+                     async with session.ws_connect(ws_url, heartbeat=server_config.heartbeat_interval or None) as ws:
+                         self._ws = ws
+                         self._logger.info(f"适配器已连接: {display_url}")
++                        # 连接成功即视为掉线恢复，重置退避阶梯与失败日志节流状态。
++                        self._reconnect_attempt = 0
++                        self._failure_log_monotonic = None
++                        self._failure_log_suppressed = 0
+                         disconnect_reason = await self._receive_loop(ws)
+                         self._log_connection_closed(display_url, server_config, disconnect_reason)
+             except asyncio.CancelledError:
+                 raise
+             except Exception as exc:
+-                self._logger.warning(
+-                    f"SnowLuma 适配器连接失败:{display_url}；"
+-                    f"{self._describe_connection_error(exc, server_config)}"
+-                    f"{self._build_reconnect_hint(server_config)}"
+-                )
++                self._log_connection_failure(display_url, server_config, exc)
+             finally:
+                 self._ws = None
+                 await self._notify_connection_closed()
+@@ -227,7 +237,10 @@ class QQTransportClient:
+             if self._stop_requested:
+                 break
+ 
+-            await asyncio.sleep(server_config.reconnect_delay_sec)
++            # 指数退避：5 → 10 → 20 → 40 → 80 → 160 → 300（封顶）秒。
++            delay = self._next_reconnect_delay(server_config)
++            self._reconnect_attempt += 1
++            await asyncio.sleep(delay)
+ 
+     async def _receive_loop(self, ws: AiohttpClientWebSocketResponse) -> str:
+         """持续消费 WebSocket 消息并分发处理。
+@@ -388,6 +401,51 @@ class QQTransportClient:
+             return {}
+         return {"Authorization": f"Bearer {server_config.token}"}
+ 
++    def _next_reconnect_delay(self, server_config: QQServerConfig) -> float:
++        """按连续失败次数计算下一次重连等待时间（指数退避，带上限）。
++
++        Args:
++            server_config: 当前生效的对端服务端配置。
++
++        Returns:
++            float: 本次应等待的秒数，不超过 ``MAX_RECONNECT_DELAY_SEC``。
++        """
++        exponent = min(self._reconnect_attempt, RECONNECT_BACKOFF_EXPONENT_CAP)
++        return min(server_config.reconnect_delay_sec * 2**exponent, MAX_RECONNECT_DELAY_SEC)
++
++    def _log_connection_failure(self, ws_url: str, server_config: QQServerConfig, exc: Exception) -> None:
++        """记录连接失败，并按时间窗节流连续失败的日志。
++
++        窗口内的重复失败降级为 debug 并累计次数；窗口外的失败恢复为完整 warning，
++        并附上此前被省略的失败次数。
++
++        Args:
++            ws_url: 当前尝试连接的 WebSocket 地址（已脱敏）。
++            server_config: 当前生效的对端服务端配置。
++            exc: 导致本次失败的具体异常。
++        """
++        now = time.monotonic()
++        last_logged = self._failure_log_monotonic
++        if last_logged is not None and now - last_logged < FAILURE_LOG_THROTTLE_SEC:
++            self._failure_log_suppressed += 1
++            self._logger.debug(
++                f"SnowLuma 适配器连接失败（已节流）: {ws_url}；"
++                f"{self._describe_connection_error(exc, server_config)}"
++                f"（连续失败 {self._reconnect_attempt + 1} 次）"
++            )
++            return
++
++        suppressed, self._failure_log_suppressed = self._failure_log_suppressed, 0
++        self._failure_log_monotonic = now
++        message = (
++            f"SnowLuma 适配器连接失败:{ws_url}；"
++            f"{self._describe_connection_error(exc, server_config)}"
++            f"{self._build_reconnect_hint(server_config)}"
++        )
++        if suppressed:
++            message += f"（此前的 {suppressed} 次同类失败已省略）"
++        self._logger.warning(message)
++
+     def _log_connection_attempt(self, ws_url: str, server_config: QQServerConfig) -> None:
+         """记录一次连接尝试的诊断信息。
+ 
+@@ -493,7 +551,7 @@ class QQTransportClient:
+         """
+         if self._stop_requested:
+             return ""
+-        return f"；将在 {server_config.reconnect_delay_sec:g} 秒后重连"
++        return f"；将在 {self._next_reconnect_delay(server_config):g} 秒后重连"
+ 
+     def _describe_terminal_ws_message(
+         self,

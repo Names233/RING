@@ -1,7 +1,7 @@
 [project]
 name = "digital-genesis"
 version = "0.3.0"
-description = "AstrBot x MaiBot x AIRI x dsh x OpenViking digital-life architecture"
+description = "RING router x MaiBot x AIRI x dsh x OpenViking digital-life architecture"
 requires-python = ">=3.11"
 
 [tool.pytest.ini_options]

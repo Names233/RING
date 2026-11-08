@@ -1,7 +1,7 @@
 import pytest
 
-from astrbot_router import RoutingDecision, classify
-from astrbot_router.core import (
+from ring_router import RoutingDecision, classify
+from ring_router.core import (
     DEFAULT_CONFIDENCE_THRESHOLD,
     decide_downstream,
     rule_classify,

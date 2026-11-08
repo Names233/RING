@@ -1,6 +1,8 @@
 # RING 开发文档
 
-本仓库当前处于 **v3 架构已定稿、Phase 0 文档与代码骨架** 阶段，尚未完成任何真实系统联调。本文描述仓库结构、可运行组件、开发与验证流程、当前 CI 状态与已知缺口。最后更新：2026-10-20。
+本仓库当前处于 **v3 架构已定稿、代码骨架 + 云端单节点试点** 阶段：云端已跑起 MaiBot / ring_router / persona_plan_b / OpenViking，但 MaiBot 侧尚未接入路由调用方，也无群聊真实流量。本文描述仓库结构、可运行组件、开发与验证流程、当前 CI 状态与已知缺口。最后更新：2026-11-08。
+
+> 2026-11-08 架构调整：AstrBot 已从方案移除（云端容器停用并卸载）。入口归 MaiBot，一级路由归自研 `ring_router`（原 `astrbot_router` 更名，端口 `18082`）。
 
 ## 仓库结构
 
@@ -23,17 +25,24 @@ RING/
 │   ├── PERSONA_PROVIDER_CONTRACT.md
 │   ├── OPENVIKING_PERMISSION_MATRIX.md
 │   ├── OPENVIKING_CONTEXT_STRATEGY.md
-│   ├── ASTRBOT_ROUTER_DESIGN.md
+│   ├── RING_ROUTER_DESIGN.md
 │   ├── EVAL_DESIGN.md
 │   ├── ACP_STREAMING_DESIGN.md
 │   ├── PERSONA_PLAN_B_DESIGN.md
 │   ├── SECURITY_TRUST_MODEL.md
 │   ├── ACP_BRIDGE_WIRE_SCHEMA.md
 │   ├── AIRI_EMBODIMENT_DESIGN.md
+│   ├── HYBRID_REDUNDANCY_DESIGN.md
+│   ├── MAIBOT_INTEGRATION_STUDY.md
+│   ├── ARCHITECTURE_AUDIT_AND_DEFECTS_2026.md
 │   └── DEVELOPMENT_ROADMAP.md
-├── persona_plan_b/      # Persona Plan B 纯函数原型（两段式流水线）
-├── astrbot_router/      # AstrBot 一级路由纯函数原型（规则 + 模型降级）
+├── ring_router/         # 一级路由：纯函数核心 + FastAPI 服务（127.0.0.1:18082）
+├── ring_common/         # 共用组件（AGT 模型客户端等）
+├── openviking_service/  # OpenViking 读写服务封装（127.0.0.1:18080）
+├── persona_plan_b/      # Persona Plan B A2A 服务（127.0.0.1:18081，已接 AGT）
 ├── airi_embodiment/     # AIRI 化身表现层纯函数原型（emotion 映射 + 降级）
+├── patches/
+│   └── maibot-openviking/  # MaiBot 侧 OpenViking 注入钩子的留档补丁（抽取中）
 ├── evals/
 │   ├── thresholds.yaml  # 指标阈值（文档与代码共用）
 │   ├── routing/cases.jsonl
@@ -50,16 +59,18 @@ RING/
 │   └── event-bus-events.schema.json
 ├── scripts/
 │   ├── run_evals.py     # 离线评估 runner（routing/memory/persona/all）
+│   ├── run_cloud_node.py # 云端单进程启动三服务（18080/18081/18082，均回环）
+│   ├── run_local_node.py # 本地节点：指向云端 CLOUD_ROUTER_URL（127.0.0.1:18082）
 │   └── migrate_mempalace_to_openviking.py
 └── tests/               # 仓库级测试（配置、迁移、契约、文档索引、评估 runner）
 ```
 
-## 工程状态（2026-10-20）
+## 工程状态（2026-11-08）
 
 | 组件 | 状态 | 说明 |
 |---|---|---|
 | v3 架构文档 | ✅ 已定稿 | 见 `ARCHITECTURE.md` |
-| 根目录测试 | ✅ 本地通过 | 136 passed（Python 3.14.7；需 pytest/PyYAML/jsonschema/fastapi） |
+| 根目录测试 | ✅ 本地通过 | 145 passed（2026-11-08 实测，Python 3.14；需 pytest/PyYAML/jsonschema/fastapi） |
 | ACP↔A2A bridge | 🟡 参考实现（未联调） | 同步 JSON-RPC 流程 + 29 个单元测试；未接真实 dsh；同步路径拿不到执行正文（见“已知缺口”） |
 | CI | 🔴 当前失败 | 最近 9 次 run 连续失败；根因见 `## CI`，本地等价命令全绿 |
 | LiteLLM 配置模板 | ✅ 已提供 | `config/litellm.yaml`，覆盖五个路由模型与 fallback |
@@ -70,7 +81,7 @@ RING/
 | 跨 Agent 事件总线 Schema | ✅ 已冻结 | `schemas/event-bus-events.schema.json`，覆盖 7 类核心协同事件 |
 | OpenViking 权限矩阵 | 🟡 设计完成、待映射 | 写隔离、双写者、Bridge 只读、删除审核；逻辑命名空间与物理布局映射待落地（§1.1） |
 | OpenViking 上下文与生命周期策略 | ✅ 已文档化 | L0/L1/L2 预算、渐进召回流水线、置信度时间衰减、Agent Plugins 1.0 配置 |
-| AstrBot 路由设计 | ✅ 已文档化 | 三路由决策树、意图分类器 I/O、五类故障降级 |
+| ring_router 路由设计 | ✅ 已文档化 | 三路由决策树、意图分类器 I/O、五类故障降级、MaiBot 调用契约（`docs/RING_ROUTER_DESIGN.md`） |
 | 评估集设计 | ✅ 已文档化 | 人格/记忆/路由三类指标与阈值 |
 | 路由评估初始集 | 🟡 50 条但不均衡 | tech 43 / chat 4 / embodiment 3；未满足“每类 ≥20” |
 | Persona 评估初始集 | ✅ 50 条 | `evals/persona/cases.jsonl`，easy/medium/hard 混合 |
@@ -86,9 +97,9 @@ RING/
 | Persona Plan B 原型与服务 | ✅ A2A 服务化 | `persona_plan_b/`，Stage 1/2 prompt、FastAPI A2A 端点、Schema 校验、契约不变量测试 |
 | eval-all 聚合入口 | ✅ 可用 | `python scripts/run_evals.py all --baseline`，缺失预测自动跳过 |
 | ACP 流式映射原型 | ✅ 纯函数骨架 | 9 种 `sessionUpdate` 映射、terminal 一次性语义、thought/usage 仅入 Langfuse、未知事件忽略 |
-| AstrBot 路由引擎原型 | ✅ 纯函数骨架 | 显式触发词、confidence < 0.6 回落 chat、模型不可用规则降级；关键词表偏宽，tech 易过触发 |
-| 真实系统联调 | ⏸ 未开始 | AstrBot/MaiBot/AIRI/dsh/OpenViking 均未接入 |
-| 本地部署 | ⏸ 暂缓 | 按当前目标，先完善开发文档与代码骨架 |
+| ring_router 路由服务 | ✅ 服务化并已实测 | 规则 + 正则降级、模型分类（AGT `gemini-3.8-flash`）、心跳（45s/Mode A/B）、`/tasks/{id}/complete`；关键词表偏宽，tech 易过触发；**MaiBot 侧调用方尚未接入** |
+| 云端试点部署 | 🟡 单节点已验证 | MaiBot(systemd) + NapCat + OpenViking + ring-cloud.service(三服务) 已跑通 `/health`；无群聊真实流量 |
+| 真实系统联调 | 🟡 部分完成 | MaiBot ↔ ring_router 未接；dsh / AIRI 未上云（ACP Bridge 未联调真实 dsh） |
 | 仓库自身 License | ⚠️ 缺失 | 上游 license 见 README；本仓库尚未选择 license |
 
 ## ACP ↔ A2A Bridge
@@ -98,7 +109,7 @@ RING/
 bridge 只做协议翻译，不承载业务：
 
 ```text
-AstrBot (A2A message/send)
+ring_router (A2A message/send)
   ↓
 ACP Bridge
   ├─ initialize             # 协议握手
@@ -124,9 +135,9 @@ pip install -e ".[dev]"
 pytest -q
 ```
 
-2026-10-20 本地结果（Python 3.14.7）：
+2026-10-20 本地结果（Python 3.14.7）；根目录与 acp-bridge 数字见 2026-11-08 复核：
 
-- 根目录 `pytest -q`：136 passed
+- 根目录 `pytest -q`：136 passed（2026-11-08 复跑：145 passed）
 - `acp-bridge` 目录 `pytest -q`：29 passed
 - `python config/validate.py`：All configuration checks passed
 - `python scripts/run_evals.py all --baseline --enforce-thresholds`：全阈值通过（fixture 口径，见 `evals/README.md`）
@@ -134,7 +145,7 @@ pytest -q
 ## 已知缺口（2026-10-20）
 
 1. **Bridge 拿不到执行正文**：`acp_client.py:106` 的 `text` 取自 `request.params.get("text", "")`，A2A 请求中没有该字段，恒为空；`main.py:50` 回退为 `"ACP execution completed."`。真实正文应来自 `session/update` 的 `agent_message_chunk`，但同步路径未监听 notification。
-2. **真实联调为零**：dsh 的 ACP 传输方式（HTTP/SSE/stdio）未经核实；AstrBot、MaiBot、AIRI、OpenViking 均未接入。
+2. **真实联调仍不完整**：dsh 的 ACP 传输方式（HTTP/SSE/stdio）未经核实；MaiBot 侧路由调用方未接；AIRI 未部署；OpenViking 经 `openviking_service` 封装接入（物理布局映射仍未落文档）。
 3. **评估是 fixture 自证**：routing 标签由 `rule_classify` 生成，memory/persona 的 predictions 为构造数据；“基线全绿”不代表真实模型质量。
 4. **命名空间未对齐**：文档中的 `viking://memories/...`、`viking://skills/` 是逻辑路径，OpenViking 物理布局映射见 `docs/OPENVIKING_PERMISSION_MATRIX.md` §1.1。
 5. **CI 当前为红**：见下节；两处根因均已定位。
@@ -205,7 +216,7 @@ python scripts/run_evals.py all --baseline
 
 1. 修复 CI：`requirements-dev.txt` 增加 `fastapi`；`Offline eval gate` 加 `if: matrix.directory == '.'`
 2. ACP notification 传输层接入（`StreamMapper` 已就绪，待接真实 dsh），让 bridge 返回真实正文
-3. AstrBot 路由意图分类器接入（`intent-router` 模型主路径，规则已就绪）
+3. MaiBot 侧接入 `POST /route` 调用方（模型分类主路径已接 AGT，规则路径已就绪；缺的是 MaiBot 内的调用点）
 4. 用真实模型输出重跑 routing / memory / persona 评估，替换构造 fixture；补齐 routing 每类样本
 5. OpenViking 逻辑命名空间 → 物理布局 / ACL 映射
 6. A2A `message/send` 最终规范发布后，冻结 bridge wire schema 并同步实现端点与字段
@@ -216,7 +227,7 @@ python scripts/run_evals.py all --baseline
 
 - 架构变更先改 `ARCHITECTURE.md`，再落代码或配置
 - 新增配置必须加入 `config/validate.py` 的结构校验
-- bridge 保持“薄”：业务逻辑放 AstrBot / dsh / OpenViking，协议翻译放 bridge
+- bridge 保持“薄”：业务逻辑放 ring_router / dsh / OpenViking，协议翻译放 bridge；入口与投递放 MaiBot（AstrBot 已移除）
 
 
 ## 设计文档索引
@@ -224,7 +235,7 @@ python scripts/run_evals.py all --baseline
 - `docs/PERSONA_PROVIDER_CONTRACT.md`：Persona Provider 请求/响应契约与不变量
 - `docs/OPENVIKING_PERMISSION_MATRIX.md`：Agent × Namespace 权限矩阵
 - `docs/OPENVIKING_CONTEXT_STRATEGY.md`：L0/L1/L2 渐进召回与生命周期衰减策略
-- `docs/ASTRBOT_ROUTER_DESIGN.md`：三路由决策树与降级策略
+- `docs/RING_ROUTER_DESIGN.md`：三路由决策树、降级策略与 MaiBot 调用契约
 - `docs/EVAL_DESIGN.md`：人格 / 记忆 / 路由评估指标与阈值
 - `docs/ACP_STREAMING_DESIGN.md`：ACP sessionUpdate → A2A 流式事件映射
 - `docs/PERSONA_PLAN_B_DESIGN.md`：两段式自研 Persona 流水线
@@ -233,7 +244,7 @@ python scripts/run_evals.py all --baseline
 - `docs/AIRI_EMBODIMENT_DESIGN.md`：AIRI 化身层接入设计
 - `docs/DEVELOPMENT_ROADMAP.md`：Phase 0–6 当前状态、剩余工作与风险登记表
 - `docs/HYBRID_REDUNDANCY_DESIGN.md`：云端常驻、本地化身与边缘兜底的三级高可用设计与降级状态机
-- `docs/MAIBOT_REPLACEMENT_STUDY.md`：MaiBot 剔除与人格层重构替代探究（AstrBot 原生能力、开源人设项目调研与三套演进方案）
+- `docs/MAIBOT_INTEGRATION_STUDY.md`：MaiBot 集成研究（当前唯一入口的定位、persona_plan_b 的可切换关系、历史决策记录）
 - `docs/ARCHITECTURE_AUDIT_AND_DEFECTS_2026.md`：方案全面审计报告与 P0/P1/P2 缺陷清单（区分已验证事实与目标态）
 - `evals/README.md`：评估集口径、阈值、fixture 与真实模型输出的区别
 - `acp-bridge/README.md`：bridge 运行方式与当前限制

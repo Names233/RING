@@ -39,7 +39,7 @@ memory:
         maibot: viking://memories/agents/maibot/
         airi: viking://memories/agents/airi/
         dsh: viking://memories/agents/dsh/
-        astrbot: viking://memories/agents/astrbot/
+        ring_router: viking://memories/agents/ring_router/
       shared: viking://memories/shared/
     skills: viking://skills/
 

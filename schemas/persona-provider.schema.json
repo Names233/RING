@@ -8,7 +8,7 @@
   "properties": {
     "message": {
       "type": "object",
-      "description": "The incoming platform message after AstrBot normalization.",
+      "description": "The incoming platform message after MaiBot normalization.",
       "required": ["role", "parts"],
       "additionalProperties": false,
       "properties": {
@@ -56,7 +56,7 @@
     },
     "recalled_memory": {
       "type": "object",
-      "description": "Memory fragments recalled from OpenViking by AstrBot before dispatch.",
+      "description": "Memory fragments recalled from OpenViking by the RING router before dispatch.",
       "required": ["fragments"],
       "additionalProperties": false,
       "properties": {

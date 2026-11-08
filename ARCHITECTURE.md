@@ -1,15 +1,15 @@
-# RING — v3 架构修订（2026-10-12）
+# RING — v3 架构修订（2026-10-12，2026-11-08 局部修订）
 
-> MaiBot 是灵魂，AIRI 是化身，AstrBot 是耳目，dsh 是双手，OpenViking 是记忆
+> MaiBot 是入口与灵魂，ring_router 是一级路由，AIRI 是化身，dsh 是双手，OpenViking 是记忆
 > —— 创世，让数字生命降临。
 
-**文档版本：v3（2026-10-12 修订）**
+**文档版本：v3（2026-10-12 修订）；2026-11-08 局部修订：AstrBot 移除，入口归 MaiBot，一级路由归 ring_router**
 
 本次修订要点：
 
 1. **执行层换血**：Hermes → **dsh (DeepSeek Harness)**，Cordis 微内核插件架构，原生 ACP 协议，与 OpenViking 官方插件互通。
 2. **记忆层换血**：MemPalace → **OpenViking**，虚拟文件系统（`viking://`）+ L0/L1/L2 渐进式上下文，Agent Plugins 1.0 标准。
-3. **AstrBot 瘦身**：从"全栈大脑"退守为**感知与投递层**（平台接入 + 意图路由 + 消息收发），任务执行权全交 dsh，杜绝双调度器。
+3. **AstrBot 移除（2026-11-08 修订）**：原方案让 AstrBot 退守"感知与投递层"，实测后决定整体撤出——容器停用并卸载。入口与消息收发归 **MaiBot**（原生 QQ/TG 适配），一级意图路由归自研 **ring_router**（`127.0.0.1:18082`），任务执行权仍全交 dsh，杜绝双调度器。原表述见 [审计报告](./docs/ARCHITECTURE_AUDIT_AND_DEFECTS_2026.md)。
 4. **MaiBot 抽象化**：改造为可替换的 **Persona Provider**（A2A 接口），存储职责移交记忆层，防止单点停更导致灵魂丢失。
 5. **协议升级**：MCP + A2A 双协议 → **MCP + A2A + ACP 三协议**，新增 ACP↔A2A 薄适配器。
 6. **新增两个横切层**：统一模型网关（LiteLLM/NewAPI）+ 可观测性（Langfuse）与评估闭环。
@@ -23,7 +23,8 @@
 |------|--------|------|
 | **怎么说** (Personality) | MaiBot（Persona Provider） | 人格、语气、情感、氛围感知、动态触发 |
 | **怎么表现** (Embodiment) | AIRI | 视觉形象、语音、动画、游戏 |
-| **怎么听/怎么说** (Perception & Delivery) | AstrBot | 18+ 平台接入、意图分类与一级路由、消息收发 |
+| **怎么听/怎么说** (Perception & Delivery) | MaiBot | QQ/TG 平台接入（SnowLuma 适配器 + NapCat）、消息收发、会话与动态触发 |
+| **怎么分派** (Routing) | ring_router | 一级意图路由（闲聊/人格/技术/化身），三路由决策树 + 故障降级 |
 | **怎么做到** (Execution) | dsh | 技术执行、代码、部署、运维、调研、文件操作、沙箱 |
 | **怎么记** (Memory) | OpenViking | 上下文总线（资源/记忆/技能统一）、L0/L1/L2 渐进召回 |
 
@@ -32,56 +33,68 @@
 ```
 Agent ↔ 工具 / 资源 / 记忆   →   MCP   （Model Context Protocol）
 Agent ↔ Agent（对等协作）     →   A2A   （Agent2Agent Protocol）
-AstrBot ↔ dsh（双手执行）     →   ACP   （Agent Client Protocol，经薄适配器）
+MaiBot ↔ ring_router（一级路由）→  HTTP  （`POST /route`、`/heartbeat`）
+ring_router ↔ dsh（双手执行） →   ACP   （Agent Client Protocol，经薄适配器）
 ```
 
 - **MCP**：不变，管"Agent 如何使用工具与记忆"。
-- **A2A**：不变，管"AstrBot ↔ MaiBot / AIRI"的对等协作。
-- **ACP**：2026 年编码类执行体的事实标准（dsh、grok-build 原生支持），管"AstrBot 如何驱动双手执行长任务"。
+- **A2A**：管"ring_router ↔ MaiBot / AIRI / persona_plan_b"的对等协作。
+- **ACP**：2026 年编码类执行体的事实标准（dsh、grok-build 原生支持），管"ring_router 如何驱动双手执行长任务"。
 - **ACP↔A2A 适配器**：百行级薄层，A2A 任务消息 ↔ ACP session/prompt，流式中间产物双向映射。不试图统一协议。
 
 ---
 
-## 一、五个项目各自的能力（v3 版）
+## 一、组件能力与职责（v3 版，2026-11-08 修订）
 
 > Star / 版本为 2026-10-20 核查值；Star 取上游仓库约数。
 
-### 1.1 AstrBot — 感知与投递层（Perception & Delivery）
+> **2026-11-08 修订**：原 `1.1 AstrBot — 感知与投递层` 已整体撤除（云端容器停用并卸载）。入口与消息收发归 MaiBot，一级意图路由归自研 ring_router。AstrBot 的历史定位与"瘦身"决策保留在 [审计报告](./docs/ARCHITECTURE_AUDIT_AND_DEFECTS_2026.md) 与 [MaiBot 集成研究](./docs/MAIBOT_INTEGRATION_STUDY.md) 的历史小节中。
 
-- 仓库：https://github.com/AstrBotDevs/AstrBot
-- Star：42.4k+ | Python 3.10+ | License: AGPL-3.0
-
-**v3 关键变化：从"全栈大脑"瘦身为"感知与投递层"**
-
-| 保留职责（独占） | 移交职责（给 dsh） |
-|------------------|-------------------|
-| IM 平台接入（QQ/微信/TG/Discord/飞书/钉钉等 18+） | 任务拆解、多步执行、子任务调度 |
-| 消息收发与会话管理 | 沙箱执行（Computer Use） |
-| 意图分类与一级路由（闲聊→MaiBot / 技术→dsh / 表现→AIRI） | 计划任务的执行（AstrBot 只管触发） |
-| 消息增强类插件（签到、词库、群管理） | 任务执行类插件 |
-
-**原则：AstrBot 管"听到了什么、把话送到哪"，dsh 管"事情怎么办"。** 两边不重叠，杜绝双调度器打架。
-
-### 1.2 MaiBot — 灵魂层（Persona Provider，可替换）
+### 1.1 MaiBot — 入口与灵魂（Entry & Persona）
 
 - 仓库：https://github.com/Mai-with-u/MaiBot
 - Star：6.3k | Python 3.10+ | License: GPL-3.0 | 版本：v1.3.11
+- 部署形态：systemd `ring-maibot.service`（非容器）；`8000` maim_message 服务端、`8001` WebUI
 
-**v3 关键变化：抽象为可替换的 Persona Provider**
+**2026-11-08 定位：MaiBot 是系统唯一消息入口，同时是默认人格（灵魂）。**
 
-风险：MaiBot 是五件套中体量最小（6.1k★）、License 传染性最强（GPL-3.0）的组件，且其核心能力（人格保持、表达学习）正被大模型原生能力与记忆层稀释。
+| 独占职责 | 明确不做（契约 P4） |
+|----------|--------------------|
+| QQ / TG 平台接入（SnowLuma 适配器 + NapCat，OneBot WS `127.0.0.1:3001`） | 技术任务执行（归 dsh） |
+| 消息收发、会话状态、群聊动态触发 | 跨 Agent 编排（归 ring_router） |
+| 默认人格对话（语气/氛围/表达） | 直连 dsh / AIRI |
 
-**应对策略：**
+**与 ring_router 的分工**：MaiBot 收到消息后调用 `POST /route`（ring_router，`127.0.0.1:18082`）取得意图与目标，再由自己或目标 Agent 完成应答与投递。谁该说话由路由决定，怎么说话由 MaiBot 决定。
 
-1. **接口化**：定义标准 A2A 接口，任何实现都可接入：
+**风险与应对**（保留 v3 原判断）：
+
+1. MaiBot 是组件中体量最小、License 传染性最强（GPL-3.0）、停更风险最高的一环，因此人格仍抽象为 **Persona Provider**（A2A 接口），实现可切换：
    ```
    输入: { 消息, 群氛围上下文, 召回的用户画像/记忆 }
    输出: { 是否回复: bool, 回复文本: string, 情绪标签: string }
    ```
-2. **存储下沉**：表达学习成果、用户画像全部写入 OpenViking（逻辑路径 `viking://memories/users/`；物理布局映射见 [权限矩阵](./docs/OPENVIKING_PERMISSION_MATRIX.md) §1.1），MaiBot 只保留"判断与生成"逻辑。换掉 MaiBot 不丢失学到的东西。
-3. **降级方案（Plan B）**：若 MaiBot 停更，用"小模型触发判断 + 主模型人格生成"两段式自研替代，触发判断可用 1B 级本地模型。
+2. **存储下沉**：表达学习成果、用户画像写入 OpenViking（逻辑路径 `viking://memories/users/`；物理映射见 [权限矩阵](./docs/OPENVIKING_PERMISSION_MATRIX.md) §1.1）。换掉灵魂实现不丢失学到的东西。
+3. **可切换的灵魂实现（Plan B）**：`persona_plan_b` 用"小模型触发判断 + 主模型人格生成"两段式实现同一契约，随时可替换 MaiBot 的内置人格；当前生产运行 MaiBot 内置人格，Plan B 未承接真实流量（见 [Persona Plan B 设计](./docs/PERSONA_PLAN_B_DESIGN.md)）。
 
-MaiBot 当前仍不可替代的能力：**群聊动态触发**（判断"这句话该不该接、什么时候接"），这是"像人"和"像客服"的分水岭。
+**当前未入版本控制的修改**：MaiBot `site-packages` 内注入了 OpenViking 读写钩子（injector 读、writer 边聊边记），属于线上未归档改动，正在抽取为 `patches/maibot-openviking/` 留档。
+
+**仍不可替代的能力**：**群聊动态触发**（判断"这句话该不该接、什么时候接"），这是"像人"和"像客服"的分水岭。⚠️ 未验证——QQ 号当前不在任何群（仅 2 个好友），无群聊真实流量。
+
+### 1.2 ring_router — 一级路由（自研服务）🆕 替换原 AstrBot 路由插件
+
+- 代码：`ring_router/`（由 `astrbot_router/` 更名，纯函数核心 + HTTP 服务）
+- 部署形态：随 `ring-cloud.service` 单进程运行，`127.0.0.1:18082` 仅回环
+
+| 能力 | 状态 |
+|------|------|
+| 规则路由（显式触发 / 关键词 / 正则降级） | ✅ 已实现 |
+| 模型分类兜底（AGT 网关 `gemini-3.8-flash`） | ✅ 已接入 |
+| 心跳（45s 超时、token + nonce 去重、seq 单调）与 Mode A/B | ✅ 已实测 |
+| 任务派发（A2A 18081 / ACP bridge / AIRI）与 `/tasks/{id}/complete` 回执 | ✅ 已实现 |
+| MaiBot 侧调用方接入 | ⏳ 待接 |
+| 意图分类器离线准确率 | ⏳ 未验证（路由标签由同一实现生成，基线只证明回归一致） |
+
+调用契约：MaiBot `POST /route`；运维 `GET /health`、`GET /mode`、`GET /tasks/pending`；MaiBot `POST /heartbeat`、`POST /tasks/{id}/complete`。完整决策树见 [RING 一级路由服务设计](./docs/RING_ROUTER_DESIGN.md)。
 
 ### 1.3 AIRI — 化身层（Embodiment）✅ 保留不动
 
@@ -139,7 +152,7 @@ viking://
 │   │   ├── maibot/diary/
 │   │   ├── airi/game_progress/
 │   │   ├── dsh/task_history/
-│   │   └── astrbot/conversations/
+│   │   └── ring_router/conversations/
 │   └── shared/         # 跨 Agent 共享上下文
 └── skills/             # 技能：沉淀的标准工作流与经验
     ├── deploy-fastapi/
@@ -172,7 +185,7 @@ Agent 像用 `ls`/`grep` 一样浏览记忆，从物理上杜绝一次性塞入�
 | 动态事实合并 | Mem0 | 自动提取偏好/关系/事实，自动覆盖陈旧事实 |
 | 时序矛盾处理 | Graphiti / Zep | 时序知识图谱，自动失效过期关系 |
 
-**不建议**：各系统原生记忆（AstrBot/MaiBot/AIRI 各自为政）——记忆孤岛瓦解"统一数字生命"的核心。
+**不建议**：各系统原生记忆（原方案中 AstrBot / MaiBot / AIRI 各自为政；AstrBot 已于 2026-11-08 移除）——记忆孤岛瓦解"统一数字生命"的核心。
 
 ---
 
@@ -181,38 +194,51 @@ Agent 像用 `ls`/`grep` 一样浏览记忆，从物理上杜绝一次性塞入�
 ### 2.1 拓扑总览
 
 ```
-                    ┌────────────────────────────────────────────────────────┐
-                    │      OpenViking (viking:// 上下文与记忆总线)             │
-                    │  ├── resources/ (项目知识、文档、代码仓库)             │
-                    │  ├── memories/  (用户画像、多Agent共享日记、经历归档) │
-                    │  └── skills/    (沉淀的标准工作流与经验)               │
-                    └─────────────────────────┬──────────────────────────────┘
-                                              │  Agent Plugins 1.0 / MCP (L0/L1/L2)
-       ┌──────────────────────┬───────────────┴───────────────┬──────────────────────┐
-       ▼                      ▼                               ▼                      ▼
-┌───────────────┐      ┌───────────────┐               ┌───────────────┐      ┌───────────────┐
-│ AstrBot (耳目) │      │  MaiBot (灵魂) │               │   AIRI (化身) │      │   dsh (双手)  │
-│ 平台接入/路由  │      │ 语气/氛围/画像│               │ 动作/视觉/TTS │      │ 执行/编码/运维│
-└───────┬───────┘      └───────┬───────┘               └───────┬───────┘      └───────┬───────┘
-        │                      │                               │                      │
-        │                      │                               │                      │
-        └──────────────────────┴───────────────┬───────────────┴──────────────────────┘
-                                               │ A2A / ACP 协议总线
-                                               ▼
-                                      用户感知（统一数字生命）
+用户 (QQ / TG)
+  │
+  ▼
+┌────────────────────────────┐   HTTP /route + /heartbeat   ┌──────────────────────────┐
+│ MaiBot (入口与灵魂)         │ ───────────────────────────► │ ring_router (一级路由)    │
+│ 平台接入 / 会话 / 默认人格  │ ◄─────────────────────────── │ 闲聊|人格|技术|化身        │
+│ systemd, 8000/8001          │        路由结果 + 回执        │ systemd, 127.0.0.1:18082  │
+└──────────┬─────────────────┘                              └───────┬─────────┬────────┘
+           │ 自答（chat/persona 命中 MaiBot 时）                    │ A2A     │ ACP
+           ▼                                                        ▼         ▼
+      直接回复用户                                   ┌──────────────┐  ┌──────────────┐
+                                                     │persona_plan_b│  │ ACP Bridge   │
+                                                     │ (可切换灵魂) │  │ → dsh (双手) │
+                                                     │ 18081        │  │ 3080/ACP     │
+                                                     └──────────────┘  └──────────────┘
+                                                            │ A2A（embodiment）
+                                                            ▼
+                                                     ┌──────────────┐
+                                                     │ AIRI (化身)  │
+                                                     │ 视觉/语音/动作│
+                                                     └──────────────┘
+
+        全部 Agent ── MCP / Agent Plugins 1.0 ──► OpenViking (viking://, 1933)
+        ├── resources/ (项目知识、文档、代码仓库)
+        ├── memories/  (用户画像、各 Agent 日记、经历归档)
+        └── skills/    (沉淀的标准工作流与经验)
+
+        横切：AGT 模型网关（gemini-3.8-flash）+ Langfuse 可观测性 + NATS 事件总线
 ```
 
 ### 2.2 通信规则汇总
 
 | 链路 | 协议 | 用途 |
 |------|------|------|
-| 用户 ↔ AstrBot | 各 IM 平台 SDK | 消息收发 |
-| AstrBot → MaiBot | A2A | 请求人格化回复（Persona Provider 接口） |
-| AstrBot → AIRI | A2A | 请求视觉/语音表现 |
-| AstrBot → dsh | **ACP**（经适配器） | 派发技术任务（异步长任务，流式回传） |
-| dsh → AstrBot | **ACP**（经适配器） | 回传执行结果与中间产物 |
-| 各 Agent → OpenViking | MCP（Agent Plugins 1.0） | 记忆/知识/技能读写（L0/L1/L2 渐进） |
+| 用户 ↔ MaiBot | QQ（OneBot WS）/ TG Bot API | 消息收发（SnowLuma 适配器 + NapCat） |
+| MaiBot → ring_router | HTTP `POST /route`、`POST /heartbeat` | 一级意图路由；任务状态与心跳上报 |
+| ring_router → MaiBot | A2A 回调 / 同步响应 | 路由结果、任务完成回执（由 MaiBot 投递） |
+| ring_router → persona_plan_b | A2A | 请求人格化回复（Persona Provider 接口，`127.0.0.1:18081`） |
+| ring_router → AIRI | A2A | 请求视觉/语音表现 |
+| ring_router → dsh | **ACP**（经 ACP Bridge） | 派发技术任务（异步长任务，流式回传） |
+| dsh → ring_router | **ACP**（经 ACP Bridge） | 回传执行结果与中间产物 |
+| 各 Agent → OpenViking | MCP（Agent Plugins 1.0） | 记忆/知识/技能读写（L0/L1/L2 渐进，`127.0.0.1:18080`） |
 | 事件广播 | NATS / Redis Streams | 跨 Agent 事件通知（如"dsh 部署完成"→ MaiBot 报喜 + AIRI 庆祝） |
+
+> 说明：ring_router 是唯一编排层（契约 P4）——MaiBot、persona_plan_b、AIRI、dsh 之间不允许互相直连派发任务。
 
 ### 2.3 ACP↔A2A 适配器
 
@@ -266,8 +292,8 @@ model_gateway:
       fallback: "deepseek/deepseek-coder"    # 故障转移
     airi:
       tts: "local/voicevox"                  # 本地 TTS
-    astrbot:
-      intent: "deepseek/deepseek-chat"       # 意图分类
+    ring_router:
+      intent: "gemini-3.8-flash"             # 意图分类（经 AGT 网关）
 
   cost_tracking: true   # 按 Agent 归账 token 消耗
   rate_limit:
@@ -293,7 +319,7 @@ model_gateway:
 
 ### 3.3 事件总线（NATS / Redis Streams）
 
-解决广播型场景——点对点 A2A 意味着 AstrBot 要当所有事件的二传手：
+解决广播型场景——点对点 A2A 意味着 ring_router 要当所有事件的二传手：
 
 ```yaml
 # 事件示例
@@ -333,12 +359,18 @@ persona:
     voice: { provider: "voicevox", speed: 1.0 }
     expressions: { happy: "smile_open", thinking: "eyes_up" }
 
-  perception:         # → AstrBot（瘦身后）
-    platforms: [qq, telegram, discord]
-    plugins: { message_enhancement_only: true }  # 只做消息增强
-    routing:
-      chat: "maibot"       # 闲聊/情感 → Persona Provider
-      tech: "dsh"          # 技术任务 → 双手
+  entry:              # → MaiBot（唯一入口，2026-11-08 起）
+    platforms: [qq, telegram]        # 只做 QQ + TG；Discord/飞书/钉钉/WebChat 当前不做
+    adapter: "snowluma"              # 经 OneBot WS 连 NapCat
+    onebot_ws: "127.0.0.1:3001"
+
+  routing:            # → ring_router（一级路由，2026-11-08 起）
+    endpoint: "http://127.0.0.1:18082"
+    rules: [explicit_trigger, keyword, regex_fallback]
+    model_fallback: "gemini-3.8-flash"   # 经 AGT 网关
+    routes:
+      chat: "maibot"       # 闲聊/情感 → 入口自答（或 Persona Provider）
+      tech: "dsh"          # 技术任务 → 双手（经 ACP Bridge）
       embodiment: "airi"   # 表现需求 → 化身
 
   execution:          # → dsh
@@ -361,7 +393,7 @@ memory:               # → OpenViking
         maibot: "viking://memories/agents/maibot/"
         airi: "viking://memories/agents/airi/"
         dsh: "viking://memories/agents/dsh/"
-        astrbot: "viking://memories/agents/astrbot/"
+        ring_router: "viking://memories/agents/ring_router/"
       shared: "viking://memories/shared/"
     skills: "viking://skills/"
   # 注意：以上 memories/*、skills/ 为逻辑命名空间；物理布局映射见 docs/OPENVIKING_PERMISSION_MATRIX.md §1.1
@@ -387,7 +419,55 @@ event_bus:            # → NATS / Redis Streams
 
 ## 五、部署架构（v3 版）
 
-### 5.1 单机全量部署（开发与单节点参考）
+### 5.1 当前部署拓扑（2026-11-08，实测状态）
+
+云节点：AWS Lightsail Debian 13 / 2GB，公网 IP `52.64.65.113`，域名命名空间 `*.namespace.cyou`（Caddy 反代 + Cloudflare Tunnel / 直连）。
+
+```
+                       互联网用户（QQ / TG）
+                              │
+                     ┌────────┴─────────┐
+                     │ Cloudflare Tunnel │  出站加密，不暴露入站端口
+                     └────────┬─────────┘
+                              ▼
+                      Caddy (443, *.namespace.cyou)
+                              │
+        ┌─────────────────────┴──────────────────────┐
+        ▼                                            ▼
+┌──────────────────┐                        ┌────────────────────┐
+│ MaiBot (入口+灵魂)│ ── HTTP /route ──────► │ ring_router (一级) │ 127.0.0.1:18082
+│ systemd           │ ◄──── 路由结果/回执 ── │ systemd 同进程组   │
+│ 8000 / 8001       │                        └───┬────────┬───────┘
+└────────┬─────────┘                            │        │
+         │ OneBot WS 127.0.0.1:3001             │A2A     │ACP(A2A→ACP bridge)
+         ▼                                      ▼        ▼
+┌──────────────────┐                    ┌─────────────┐ ┌──────────────┐
+│ NapCat (QT)      │                    │persona_plan_b│ │ dsh (本地节点)│
+│ QQ 3890037770    │                    │ 18081        │ │ 未上云        │
+└──────────────────┘                    └─────────────┘ └──────────────┘
+
+OpenViking 0.5.3（1933 API + Studio）── 记忆总线，全 Agent 经 MCP 访问
+ring-cloud.service：一个进程承载 openviking_service(18080) / persona_plan_b(18081) / ring_router(18082)
+模型：统一经 AGT 网关，gemini-3.8-flash
+```
+
+| 组件 | 部署形态 | 端口 / 监听 | 版本 | 状态与证据 |
+|------|----------|-------------|------|-----------|
+| MaiBot | **systemd** `ring-maibot.service`（非容器） | `8000` maim_message、`8001` WebUI（经 Caddy 对外） | v1.3.11 | ✅ 运行中 |
+| SnowLuma 适配器 | MaiBot 内置适配器（Python 包） | 无独立端口 | — | ✅ 已装，负责 QQ 侧收发 |
+| NapCat | 独立进程（QT 版） | OneBot WS `127.0.0.1:3001`（仅回环） | — | ✅ 运行中，QQ `3890037770` |
+| ring_router | **systemd** `ring-cloud.service`（同进程组） | `127.0.0.1:18082`（仅回环） | 自研 | ✅ `/health` 通过 |
+| persona_plan_b | 同上 | `127.0.0.1:18081`（仅回环） | 自研 | ✅ 已接 AGT，未接真实流量 |
+| openviking_service | 同上（RING 侧服务封装） | `127.0.0.1:18080`（仅回环） | 自研 | ✅ 运行中 |
+| OpenViking | 独立服务（部署形态未在本次核验中确认） | `1933`（API + Studio） | 0.5.3 | ⚠️ 形态未核实；嵌入/重排接百炼 `qwen3.7-text-embedding-flash`(1024 维) + `qwen3.7-text-rerank` |
+| Caddy | **systemd** | `443` | — | ✅ 反代 + TLS |
+| Cloudflare Tunnel | **systemd** `cloudflared` | 出站 | — | ✅ |
+| dsh / AIRI | 本地节点（个人机） | — | — | ⏳ 未上云 |
+| AstrBot | **已卸载**（原容器） | — | — | ❌ 2026-11-08 停用并卸载 |
+
+**已知未入版本控制的改动**：MaiBot `site-packages` 内注入的 OpenViking 读写钩子（injector / writer），正在抽取为 `patches/maibot-openviking/`。在此之前，重建 MaiBot 环境会丢失该能力。
+
+### 5.2 单机全量部署（开发与单节点参考）
 
 ```yaml
 # docker-compose.yml（单机开发环境，包含全套服务）
@@ -429,22 +509,28 @@ services:
       - viking_data:/data
       - ./soul.yaml:/app/soul.yaml:ro
 
-  # ── 感知与投递 ──
-  astrbot:
-    image: soulter/astrbot:latest
-    depends_on: [redis, openviking, litellm]
-    ports: ["6185:6185", "6196:6196"]
+  # ── 一级路由（自研；生产中由 ring-cloud.service 单进程承载）──
+  ring-router:
+    build: ./ring_router
+    depends_on: [openviking, litellm]
+    ports: ["127.0.0.1:18082:18082"]
     volumes:
-      - astrbot_data:/AstrBot/data
-      - ./soul.yaml:/AstrBot/data/soul.yaml:ro
+      - ./soul.yaml:/app/soul.yaml:ro
     environment:
-      OPENAI_BASE_URL: "http://litellm:4000/v1"
-      VIKING_MCP_URL: "http://openviking:8080/mcp"
+      OPENVIKING_URL: "http://openviking:8080"
+      PERSONA_PROVIDER_URL: "http://persona:18081"
+      HEARTBEAT_TOKEN: "${ROUTER_HEARTBEAT_TOKEN}"
+
+  # ── 可切换的灵魂实现 ──
+  persona:
+    build: ./persona_plan_b
+    depends_on: [openviking, litellm]
+    ports: ["127.0.0.1:18081:18081"]
 
   # ── 灵魂 ──
   maibot:
     image: maibot/maisaka:latest
-    depends_on: [astrbot, openviking, litellm]
+    depends_on: [ring-router, openviking, litellm]
     ports: ["8080:8080"]
     volumes:
       - maibot_data:/MaiBot/data
@@ -456,7 +542,7 @@ services:
   # ── 化身 ──
   airi:
     image: moeru-ai/airi:latest
-    depends_on: [maibot, astrbot, openviking]
+    depends_on: [maibot, ring-router, openviking]
     ports: ["3001:3000"]
     volumes:
       - airi_data:/AIRI/data
@@ -467,7 +553,7 @@ services:
   # ── 双手 ──
   dsh:
     image: deepseek-ai/dsh:latest
-    depends_on: [astrbot, openviking, litellm, nats]
+    depends_on: [ring-router, openviking, litellm, nats]
     ports: ["3080:3080"]
     volumes:
       - dsh_data:/root/.dsh
@@ -481,26 +567,25 @@ services:
   # ── ACP↔A2A 适配器 ──
   acp-bridge:
     build: ./acp-bridge/
-    depends_on: [astrbot, dsh]
+    depends_on: [ring-router, dsh]
     environment:
-      ASTRBOT_A2A_URL: "http://astrbot:6196/a2a"
+      ROUTER_A2A_URL: "http://ring-router:18082/a2a"
       DSH_ACP_URL: "http://dsh:3080"
 
 volumes:
   pg_data:
   redis_data:
   viking_data:
-  astrbot_data:
   maibot_data:
   airi_data:
   dsh_data:
 ```
 
-### 5.2 云地协同与高可用冗余架构（解决关机失联）
+### 5.3 云地协同与高可用冗余架构（解决关机失联）
 
 在实际运行中，若全量运行在个人电脑上，**电脑关机将导致数字生命完全失联**。RING 采用**“云端驻守灵魂与感官，本地承载双手与华服，边缘守护最后防线”**的混合分级架构（详见 [云地混合冗余设计](./docs/HYBRID_REDUNDANCY_DESIGN.md)）：
 
-1. **云端常驻节点 (Cloud VPS)**：部署 AstrBot（感知路由）、MaiBot（灵魂对话）、OpenViking（权威记忆主库）、LiteLLM（统一网关），确保 24/7 消息即时响应与人格在线。
+1. **云端常驻节点 (Cloud VPS)**：部署 MaiBot（唯一入口 + 默认人格）、ring_router（一级路由）、OpenViking（权威记忆主库）、模型网关，确保 24/7 消息即时响应与人格在线（当前实际形态见 §5.1）。
 2. **本地增强节点 (Local PC)**：部署 AIRI（Live2D/VRM 渲染与语音化身）、dsh（系统沙箱与代码执行双手）、ACP Bridge。平时开机提供极致体验；关机时自动优雅降级，聊天功能由云端无缝接管，杜绝失联。
 3. **边缘兜底层 (Cloudflare Edge)**：借助 Cloudflare Tunnel 建立出站加密通道（零公网暴露端口）；Cloudflare Workers 提供极端网络故障下的快速保活响应。
 
@@ -510,7 +595,7 @@ volumes:
 
 | 项目 | License | 兼容性 |
 |------|---------|--------|
-| AstrBot | AGPL-3.0 | ⚠️ 独立服务部署，网络协议交互 |
+| ~~AstrBot~~ | ~~AGPL-3.0~~ | ❌ 已于 2026-11-08 移除（容器卸载），不再引入；自研 `ring_router` 为本仓库 MIT 代码 |
 | MaiBot | GPL-3.0 | ⚠️ 同上 |
 | AIRI | MIT | ✅ |
 | **dsh** | **MIT** | ✅（比 Hermes 更宽松） |
@@ -523,7 +608,7 @@ volumes:
 ## 七、安全性（v3 补充）
 
 1. **dsh 执行风险**：同原 Hermes 风险——不挂载 `/var/run/docker.sock`，命令白名单，最小权限运行。
-2. **OpenViking 权限隔离**：`viking://` 命名空间按 Agent 隔离写权限，读权限可按需开放。`memories/users/` 仅 MaiBot/AstrBot 可写，其他 Agent 只读。注意 `memories/...` 是逻辑路径，物理布局映射见 [权限矩阵](./docs/OPENVIKING_PERMISSION_MATRIX.md) §1.1。
+2. **OpenViking 权限隔离**：`viking://` 命名空间按 Agent 隔离写权限，读权限可按需开放。`memories/users/` 仅入口层（MaiBot，经注入钩子）与 Persona Provider 可写，其他 Agent 只读。注意 `memories/...` 是逻辑路径，物理布局映射见 [权限矩阵](./docs/OPENVIKING_PERMISSION_MATRIX.md) §1.1。
 3. **模型网关统一鉴权**：所有 API Key 集中在 LiteLLM 管理，各服务不持有原始 Key。
 4. **事件总线 ACL**：NATS subject 级权限控制，防止 Agent 越权订阅/发布。
 
@@ -537,20 +622,21 @@ volumes:
 - [ ] 部署 OpenViking，配置 `viking://` 命名空间与权限
 
 ### Phase 1：记忆层迁移（1 周）
-- [ ] OpenViking 接入 AstrBot（Agent Plugins 1.0 / MCP）
+- [ ] OpenViking 接入 MaiBot（Agent Plugins 1.0 / MCP；当前为 site-packages 注入钩子，待抽成 `patches/maibot-openviking/`）
 - [ ] 定义 `viking://` 目录结构与 Agent 权限矩阵
 - [ ] 如有 MemPalace 存量数据，编写迁移脚本
 
 ### Phase 2：双手换血（1–2 周）
 - [ ] 部署 dsh（headless profile），接入 LiteLLM
 - [ ] 编写 ACP↔A2A 适配器
-- [ ] AstrBot → ACP → dsh → ACP 回传全链路打通
+- [ ] ring_router → ACP Bridge → dsh → ACP 回传全链路打通
 - [ ] 配置沙箱、命令白名单
 
-### Phase 3：AstrBot 瘦身（1 周）
-- [ ] AstrBot 路由逻辑改造：技术任务 → ACP 派发 dsh
-- [ ] 移除 AstrBot 侧的执行类插件/Sub-Agent 调度
-- [ ] 保留平台接入 + 消息增强插件
+### Phase 3：一级路由（原"AstrBot 瘦身"，2026-11-08 调整）
+- [x] 撤除 AstrBot，容器停用并卸载（原计划为"瘦身保留"，实际改为整体移除）
+- [x] 自研 `ring_router` 承接一级路由：规则 + 模型分类（AGT）+ 心跳/Mode A/B + 任务派发
+- [ ] MaiBot 侧接入 `/route` 调用方（唯一缺口）
+- [ ] 群聊动态触发真实流量验证（需先把 QQ 号拉进测试群）
 
 ### Phase 4：灵魂改造（1–2 周）
 - [ ] MaiBot 接口化为 Persona Provider（A2A 标准接口）

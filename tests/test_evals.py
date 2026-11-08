@@ -36,6 +36,10 @@ def test_eval_design_documents_thresholds():
 
 
 def test_router_design_documents_degradation():
-    design = (ROOT / "docs" / "ASTRBOT_ROUTER_DESIGN.md").read_text(encoding="utf-8")
+    # The router design doc may be renamed as the service is rebranded; resolve it
+    # by shape instead of a hard-coded filename so the assertion survives renames.
+    design_docs = sorted((ROOT / "docs").glob("*_ROUTER_DESIGN.md"))
+    assert design_docs, "router design document is missing from docs/"
+    design = "\n".join(path.read_text(encoding="utf-8") for path in design_docs)
     for failure in ["意图模型不可用", "Persona Provider 超时", "ACP bridge 超时", "AIRI 失败", "OpenViking 不可用"]:
         assert failure in design

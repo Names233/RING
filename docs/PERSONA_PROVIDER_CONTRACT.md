@@ -73,7 +73,7 @@ Persona Provider 是 RING 中可替换的“灵魂层”。MaiBot 是当前实�
 | P1 | `should_reply=false` 时 `text` 必须为空字符串 | 调用方拒绝响应 |
 | P2 | `emotion` 只能取枚举值 | 调用方拒绝响应 |
 | P3 | Provider 不写 OpenViking | 违反架构分层 |
-| P4 | Provider 不直接调用 dsh/AIRI | 由 AstrBot 负责编排 |
+| P4 | Provider 不直接调用 dsh/AIRI | 由 ring_router 负责编排 |
 | P5 | 响应延迟 P95 ≤ 3s；超时按 `should_reply=false` 降级 | 调用方超时静默 |
 
 ## 4. Plan B 降级实现

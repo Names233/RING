@@ -10,7 +10,7 @@ EXPECTED_DOCUMENTS = [
     "docs/PERSONA_PROVIDER_CONTRACT.md",
     "docs/OPENVIKING_PERMISSION_MATRIX.md",
     "docs/OPENVIKING_CONTEXT_STRATEGY.md",
-    "docs/ASTRBOT_ROUTER_DESIGN.md",
+    "docs/RING_ROUTER_DESIGN.md",
     "docs/EVAL_DESIGN.md",
     "docs/ACP_STREAMING_DESIGN.md",
     "docs/PERSONA_PLAN_B_DESIGN.md",
@@ -19,7 +19,7 @@ EXPECTED_DOCUMENTS = [
     "docs/AIRI_EMBODIMENT_DESIGN.md",
     "docs/DEVELOPMENT_ROADMAP.md",
     "docs/HYBRID_REDUNDANCY_DESIGN.md",
-    "docs/MAIBOT_REPLACEMENT_STUDY.md",
+    "docs/MAIBOT_INTEGRATION_STUDY.md",
     "docs/ARCHITECTURE_AUDIT_AND_DEFECTS_2026.md",
     "evals/README.md",
 ]
@@ -31,7 +31,7 @@ INDEX_FILES = {
         "./docs/PERSONA_PROVIDER_CONTRACT.md",
         "./docs/OPENVIKING_PERMISSION_MATRIX.md",
         "./docs/OPENVIKING_CONTEXT_STRATEGY.md",
-        "./docs/ASTRBOT_ROUTER_DESIGN.md",
+        "./docs/RING_ROUTER_DESIGN.md",
         "./docs/EVAL_DESIGN.md",
         "./docs/ACP_STREAMING_DESIGN.md",
         "./docs/PERSONA_PLAN_B_DESIGN.md",
@@ -40,7 +40,7 @@ INDEX_FILES = {
         "./docs/AIRI_EMBODIMENT_DESIGN.md",
         "./docs/DEVELOPMENT_ROADMAP.md",
         "./docs/HYBRID_REDUNDANCY_DESIGN.md",
-        "./docs/MAIBOT_REPLACEMENT_STUDY.md",
+        "./docs/MAIBOT_INTEGRATION_STUDY.md",
         "./docs/ARCHITECTURE_AUDIT_AND_DEFECTS_2026.md",
     ],
     "DEVELOPMENT.md": [
@@ -49,7 +49,7 @@ INDEX_FILES = {
         "docs/PERSONA_PROVIDER_CONTRACT.md",
         "docs/OPENVIKING_PERMISSION_MATRIX.md",
         "docs/OPENVIKING_CONTEXT_STRATEGY.md",
-        "docs/ASTRBOT_ROUTER_DESIGN.md",
+        "docs/RING_ROUTER_DESIGN.md",
         "docs/EVAL_DESIGN.md",
         "docs/ACP_STREAMING_DESIGN.md",
         "docs/PERSONA_PLAN_B_DESIGN.md",
@@ -58,7 +58,7 @@ INDEX_FILES = {
         "docs/AIRI_EMBODIMENT_DESIGN.md",
         "docs/DEVELOPMENT_ROADMAP.md",
         "docs/HYBRID_REDUNDANCY_DESIGN.md",
-        "docs/MAIBOT_REPLACEMENT_STUDY.md",
+        "docs/MAIBOT_INTEGRATION_STUDY.md",
         "docs/ARCHITECTURE_AUDIT_AND_DEFECTS_2026.md",
     ],
 }
@@ -204,19 +204,42 @@ def test_hybrid_redundancy_covers_required_sections() -> None:
     for section in HYBRID_REDUNDANCY_SECTIONS:
         assert section in doc, f"Hybrid redundancy document missing section: {section}"
 
-MAIBOT_REPLACEMENT_SECTIONS = [
-    "现状剖析：为什么必须剔除 MaiBot？",
-    "AstrBot 自身承担人格（Persona）的能力深度评测",
+MAIBOT_INTEGRATION_SECTIONS = [
+    "结论先行",
+    "历史决策记录（2026-10-22）",
+    "历史附录：已移除的感知层方案（AstrBot）人格能力评测",
     "业界优秀开源人格与角色扮演项目调研",
-    "三套剔除与重构落地演进方案",
-    "综合选型决策与推荐路线",
+    "当前现实：MaiBot 作为唯一入口与对话主体",
+    "persona_plan_b 的定位与取舍",
+    "三套演进方案的现状",
+    "综合决策与当前路线",
 ]
 
 
-def test_maibot_replacement_covers_required_sections() -> None:
-    doc = (REPO_ROOT / "docs/MAIBOT_REPLACEMENT_STUDY.md").read_text(encoding="utf-8")
-    for section in MAIBOT_REPLACEMENT_SECTIONS:
-        assert section in doc, f"MaiBot replacement document missing section: {section}"
+def test_maibot_integration_covers_required_sections() -> None:
+    doc = (REPO_ROOT / "docs/MAIBOT_INTEGRATION_STUDY.md").read_text(encoding="utf-8")
+    for section in MAIBOT_INTEGRATION_SECTIONS:
+        assert section in doc, f"MaiBot integration document missing section: {section}"
+
+
+RING_ROUTER_SECTIONS = [
+    "角色定位与调用关系",
+    "设计原则",
+    "路由决策树",
+    "路由分类定义",
+    "意图分类器",
+    "降级策略",
+    "与 OpenViking 的交互",
+    "实现状态",
+    "验收标准",
+    "路由测试集初始样本",
+]
+
+
+def test_ring_router_design_covers_required_sections() -> None:
+    doc = (REPO_ROOT / "docs/RING_ROUTER_DESIGN.md").read_text(encoding="utf-8")
+    for section in RING_ROUTER_SECTIONS:
+        assert section in doc, f"RING router document missing section: {section}"
 
 AUDIT_REPORT_SECTIONS = [
     "背景与审计结论概要",

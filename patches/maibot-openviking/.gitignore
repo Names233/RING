@@ -1,0 +1,3 @@
+# py_compile / 运行 install.py 产生的缓存
+__pycache__/
+*.pyc

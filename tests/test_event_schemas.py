@@ -56,7 +56,7 @@ def test_schema_itself_is_valid():
             "emotion": "happy",
             "requested_action": "wave",
             "voice": {"enabled": True, "text": "你好！"},
-            "source": "astrbot",
+            "source": "ring_router",
         },
         {
             "event": "embodiment.motion.completed",

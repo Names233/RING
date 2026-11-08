@@ -75,14 +75,14 @@ def _require_unique_ids(cases: Iterable[dict[str, Any]]) -> list[str]:
 def baseline_route(text: str) -> str:
     """Deterministic router used as the offline regression baseline.
 
-    Delegates to the shared astrbot_router package so the eval baseline and
+    Delegates to the shared ring_router package so the eval baseline and
     the deployed degraded path cannot drift apart.
     """
     import sys
 
     if str(REPO_ROOT) not in sys.path:
         sys.path.insert(0, str(REPO_ROOT))
-    from astrbot_router.core import rule_classify
+    from ring_router.core import rule_classify
 
     return rule_classify(text).route
 

@@ -1,23 +1,23 @@
 # AIRI 化身层接入设计
 
-AIRI 是 v3 架构中的**化身层**：视觉形象、语音、动画与游戏 Agent。本文定义它如何接入 AstrBot 路由、OpenViking 记忆与 NATS 事件总线，并把误差控制在"表现失败只损失表现，不损失对话"的范围内。
+AIRI 是 v3 架构中的**化身层**：视觉形象、语音、动画与游戏 Agent。本文定义它如何接入 ring_router 一级路由、OpenViking 记忆与 NATS 事件总线，并把误差控制在"表现失败只损失表现，不损失对话"的范围内。
 
 ## 1. 定位与边界
 
 | AIRI 负责 | AIRI 不负责 |
 |---|---|
-| Live2D/VRM 形象渲染与动作 | 意图分类与一级路由（AstrBot） |
+| Live2D/VRM 形象渲染与动作 | 意图分类与一级路由（ring_router） |
 | 本地/云端 TTS 语音合成 | 人格文本生成（Persona Provider） |
 | 表情/动作/动画驱动（MAGIC） | 技术任务执行（dsh） |
 | 游戏内 Agent 行为 | 记忆存储与索引（OpenViking） |
-| 表现状态上报（当前动作/场景） | 平台消息收发（AstrBot） |
+| 表现状态上报（当前动作/场景） | 平台消息收发（MaiBot） |
 
 核心边界：**AIRI 只把"情绪/意图"翻译成"表现"，永远不生成业务文本。**
 
 ## 2. 接入拓扑
 
 ```text
-AstrBot (A2A)
+ring_router (A2A)
   │ embodiment 请求 {emotion, action, text?, voice?}
   ▼
 AIRI Embodiment Provider
@@ -31,7 +31,7 @@ NATS 事件总线
 
 ## 3. A2A 请求契约
 
-AstrBot 路由判定为 `embodiment` 时，向 AIRI 发送 A2A 任务消息：
+ring_router 判定为 `embodiment` 时，向 AIRI 发送 A2A 任务消息：
 
 ```json
 {
@@ -134,10 +134,10 @@ AIRI 响应（A2A task）：
 | 事件 | 发布者 | 订阅者 | 触发 |
 |---|---|---|---|
 | `persona.emotion.changed` | Persona Provider | AIRI、OpenViking | emotion 变化 |
-| `persona.response.completed` | Persona Provider | AIRI、AstrBot | 人格回复完成 |
-| `embodiment.motion.requested` | AstrBot | AIRI | 路由到 embodiment |
+| `persona.response.completed` | Persona Provider | AIRI、ring_router | 人格回复完成 |
+| `embodiment.motion.requested` | ring_router | AIRI | 路由到 embodiment |
 | `embodiment.motion.completed` | AIRI | Persona Provider、OpenViking | 动作播放完成 |
-| `embodiment.motion.failed` | AIRI | Persona Provider、AstrBot | 表现失败 |
+| `embodiment.motion.failed` | AIRI | Persona Provider、ring_router | 表现失败 |
 | `deploy.completed` | dsh | AIRI、Persona Provider、OpenViking | 部署成功 |
 | `deploy.failed` | dsh | AIRI、Persona Provider、OpenViking | 部署失败 |
 
@@ -167,7 +167,7 @@ AIRI 响应（A2A task）：
   "emotion": "happy",
   "requested_action": "laugh",
   "voice": {"enabled": true, "text": "部署好了！"},
-  "source": "astrbot"
+  "source": "ring_router"
 }
 ```
 
@@ -250,7 +250,7 @@ mcp_servers:
 | TTS 失败 | 跳过语音，`voice_played=false` | 只有动作/表情 |
 | OpenViking 不可用 | 正常表现，无记忆读写，记 warning | 无个性化，不中断 |
 | 事件总线断开 | AIRI 内部继续，状态不广播 | 联动暂停，单机可用 |
-| AIRI 整体不可用 | AstrBot 返回纯文本回复 | 损失表现层，不损失对话 |
+| AIRI 整体不可用 | ring_router 返回纯文本回复，由 MaiBot 投递 | 损失表现层，不损失对话 |
 
 ## 10. 实现路线
 
@@ -269,6 +269,6 @@ mcp_servers:
 1. AIRI 不再落本地私有记忆（运行时缓存除外）
 2. `persona.*` / `embodiment.*` 事件 payload 与本文 schema 一致
 3. 8 种 emotion 全部有默认映射，未知 emotion 降级 `neutral` 有测试
-4. 表现失败不阻塞文本对话（AIRI 挂掉时 AstrBot 仍可回复）
+4. 表现失败不阻塞文本对话（AIRI 挂掉时 ring_router 仍可让 MaiBot 回复）
 5. MCP 权限与权限矩阵一致：`memories/users/` 只读，只写 `agents/airi/`
 6. 每个事件可由 `trace_id` 关联到 Langfuse

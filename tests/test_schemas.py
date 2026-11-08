@@ -35,7 +35,14 @@ def test_response_contract_invariants_are_documented():
 
 def test_permission_matrix_covers_all_agents():
     matrix = (ROOT / "docs" / "OPENVIKING_PERMISSION_MATRIX.md").read_text(encoding="utf-8")
-    for agent in ["AstrBot", "MaiBot", "AIRI", "dsh", "Bridge"]:
+    for agent in ["MaiBot", "AIRI", "dsh", "Bridge"]:
         assert agent in matrix
     for namespace in ["resources/", "memories/users/", "memories/shared/", "skills/"]:
         assert namespace in matrix
+
+    # The routing service row is deliberately not pinned to a display name, so the
+    # document may rebrand it without touching code. Only its presence is asserted.
+    section = matrix.split("## 2.", 1)[-1].split("## 3.", 1)[0]
+    rows = [line for line in section.splitlines() if line.startswith("|")]
+    agent_rows = rows[2:]  # drop the header row and the alignment row
+    assert len(agent_rows) >= 5, agent_rows

@@ -7,7 +7,7 @@
 
 ```text
 Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 ──► Phase 5 ──► Phase 6
- (基础设施)  (记忆迁移)   (dsh 换血)   (AstrBot瘦身) (Persona接口化) (化身接入)  (评估闭环)
+ (基础设施)  (记忆迁移)   (dsh 换血)   (一级路由)   (Persona接口化) (化身接入)  (评估闭环)
    ▲
    └ 当前处于 Phase 0 文档与骨架阶段
 ```
@@ -93,19 +93,21 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 - 断连后 5 秒内发出 `session/cancel`。
 - Bridge 代码不超过"薄层"边界（无业务逻辑、无密钥）。
 
-## 5. Phase 3：AstrBot 路由
+## 5. Phase 3：一级路由（ring_router）
 
 ### 已完成
-- `docs/ASTRBOT_ROUTER_DESIGN.md`：三路由决策树 + 故障降级。
+- `docs/RING_ROUTER_DESIGN.md`：三路由决策树 + 故障降级 + MaiBot 调用契约。
 - `evals/routing/cases.jsonl`：50 条评估集（初始 12 条已扩充）。
 
 ### 已完成（代码骨架）
-- [x] 纯函数路由引擎原型（关键词 + 正则降级路径，`astrbot_router/`）
+- [x] 纯函数路由引擎原型（关键词 + 正则降级路径，`ring_router/`）
+- [x] HTTP 服务化：`/route`、`/health`、`/mode`、`/heartbeat`、`/tasks/{id}/complete`（127.0.0.1:18082）
+- [ ] MaiBot 侧调用方接入（当前未接，路由由本地脚本直连验证）
 - [x] confidence < 0.6 降级测试
 - [x] eval baseline 与部署降级路径共用同一实现
 
 ### 剩余
-- [ ] `intent-router` 模型主路径接入
+- [x] `intent-router` 模型分类主路径接入（经 `ring_common` AGT 客户端调用 `gemini-3.8-flash`；离线准确率仍未评估）
 - [x] routing eval 扩展到 ≥ 50 条（已完成：50 条）
 
 ### 退出标准

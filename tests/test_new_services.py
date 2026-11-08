@@ -6,13 +6,13 @@ from openviking_service.service import (
     check_write_permission,
     create_app as create_openviking_app,
 )
-from astrbot_router.service import create_app as create_router_app
+from ring_router.service import create_app as create_router_app
 from airi_embodiment.service import create_app as create_airi_app
 from digital_genesis_acp_bridge.acp_server import create_acp_server
 
 
 def test_openviking_permission_and_confidence():
-    allowed, reason = check_write_permission("astrbot", "viking://memories/users/u1")
+    allowed, reason = check_write_permission("ring_router", "viking://memories/users/u1")
     assert allowed is True
     allowed_false, reason_false = check_write_permission("persona", "viking://memories/users/u1")
     assert allowed_false is False or isinstance(allowed_false, bool)

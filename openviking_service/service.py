@@ -35,9 +35,9 @@ def check_write_permission(agent_id: str, uri: str, operation: str = "write") ->
             "viking://skills/",
             "viking://memories/shared/requests/",
         ),
-        "astrbot": (
+        "ring_router": (
             "viking://memories/users/",
-            "viking://memories/agents/astrbot/",
+            "viking://memories/agents/ring_router/",
             "viking://memories/shared/requests/",
         ),
         "governance": ("viking://",),
